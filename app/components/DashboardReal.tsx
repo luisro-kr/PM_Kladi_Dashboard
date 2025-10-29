@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import {
-  LineChart,
   Line,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
   Cell,
   XAxis,
   YAxis,
@@ -15,12 +12,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  AreaChart,
-  Area,
   ComposedChart,
 } from 'recharts';
 import ChartCard from './ChartCard';
-import ConversionSemaphore from './ConversionSemaphore';
 
 interface SheetData {
   success: boolean;
@@ -434,8 +428,6 @@ export default function DashboardReal() {
 
     // 9. Churn por Cohorte Mensual (empresas nuevas de cada mes)
     const churnPorCohorte = Object.entries(byMonth).map(([mes, empresasDelMes]) => {
-      const fechaFinMes = new Date(mes + '-28');
-      
       // Total de empresas NUEVAS en este mes (registradas en este mes)
       const empresasNuevasDelMes = empresasDelMes.length;
       
@@ -922,13 +914,11 @@ export default function DashboardReal() {
             const empresasConActividad = rows.map((row, idx) => {
               // Parsear todos los valores numéricos
               const ticketsGenerados = parseFloat(row[4]) || 0;
-              const ticketsFacturados = parseFloat(row[5]) || 0;
               const totalVentas = parseFloat(row[6]) || 0;
               const facturas = parseFloat(row[8]) || 0;
               const cotizaciones = parseFloat(row[9]) || 0;
               const articulos = parseFloat(row[10]) || 0;
               const clientes = parseFloat(row[11]) || 0;
-              const proveedores = parseFloat(row[12]) || 0;
               
               // Calcular score combinado (clientes y facturas tienen el mayor peso)
               const scoreActividad = 
@@ -938,11 +928,6 @@ export default function DashboardReal() {
                 (clientes * 5000) +            // Clientes cuentan 5,000x cada uno (máximo peso)
                 (cotizaciones * 100) +         // Cotizaciones cuentan 100x cada una
                 (articulos * 1);               // Artículos cuentan 1x cada uno
-              
-              // Log para debuggear las primeras empresas
-              if (idx < 5) {
-                console.log(`Empresa: ${row[1]}, Score: ${scoreActividad.toLocaleString()}, Ventas: ${totalVentas}, Tickets: ${ticketsGenerados}, Facturas: ${facturas}, Clientes: ${clientes}`);
-              }
               
               // Determinar estado actual (Activo/Explorador/Inactivo) según slider
               const hoy = new Date();
