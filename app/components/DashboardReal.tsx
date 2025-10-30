@@ -1224,25 +1224,25 @@ export default function DashboardReal() {
                   <table className="w-full table-fixed divide-y divide-gray-200 text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                        <th className="px-1 md:px-2 py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-6 md:w-8">
                           #
                         </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                        <th className="px-1 md:px-2 py-3 text-center text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-8 md:w-10">
                           
                         </th>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[35%]">
+                        <th className="px-1 md:px-2 py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[28%] md:w-[35%]">
                           Empresa
                         </th>
-                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[14%]">
+                        <th className="px-1 md:px-2 py-3 text-right text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[14%]">
                           Tickets
                         </th>
-                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">
+                        <th className="px-1 md:px-2 py-3 text-right text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[24%] md:w-[20%]">
                           Ventas ($)
                         </th>
-                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
+                        <th className="px-1 md:px-2 py-3 text-right text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
                           Facturas
                         </th>
-                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
+                        <th className="px-1 md:px-2 py-3 text-right text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
                           Clientes
                         </th>
                       </tr>
@@ -1259,34 +1259,34 @@ export default function DashboardReal() {
                         
                         return (
                           <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-2 py-2 whitespace-nowrap text-xs font-bold text-gray-900">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[10px] md:text-xs font-bold text-gray-900">
                               {index + 1}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap">
                               <div className="flex items-center justify-center">
-                                <div className={`w-2.5 h-2.5 rounded-full ${config.color}`} title={config.label}></div>
+                                <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${config.color}`} title={config.label}></div>
                               </div>
                             </td>
-                            <td className="px-2 py-2 overflow-hidden">
-                              <div className="font-medium text-xs text-gray-900 truncate" title={empresa.nombre}>
+                            <td className="px-1 md:px-2 py-2 overflow-hidden">
+                              <div className="font-medium text-[10px] md:text-xs text-gray-900 truncate" title={empresa.nombre}>
                                 {empresa.nombre}
                               </div>
                               {empresa.correo && (
-                                <div className="text-[10px] text-gray-500 truncate" title={empresa.correo}>
+                                <div className="text-[8px] md:text-[10px] text-gray-500 truncate" title={empresa.correo}>
                                   {empresa.correo}
                                 </div>
                               )}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs text-right text-gray-900">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[10px] md:text-xs text-right text-gray-900">
                               {empresa.ticketsGenerados.toLocaleString('es-MX')}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs text-right font-semibold text-green-600">
-                              ${empresa.totalVentas.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[9px] md:text-xs text-right font-semibold text-green-600">
+                              ${empresa.totalVentas.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs text-right text-gray-900">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[10px] md:text-xs text-right text-gray-900">
                               {empresa.facturas.toLocaleString('es-MX')}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs text-right text-gray-900">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[10px] md:text-xs text-right text-gray-900">
                               {empresa.clientes.toLocaleString('es-MX')}
                             </td>
                           </tr>
@@ -1410,25 +1410,25 @@ export default function DashboardReal() {
                   <table className="w-full table-fixed divide-y divide-gray-200 text-sm">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                        <th className="px-1 md:px-2 py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-6 md:w-8">
                           #
                         </th>
-                        <th className="px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                        <th className="px-1 md:px-2 py-3 text-center text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-8 md:w-10">
                           
                         </th>
-                        <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[35%]">
+                        <th className="px-1 md:px-2 py-3 text-left text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[28%] md:w-[35%]">
                           Empresa
                         </th>
-                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[20%]">
+                        <th className="px-1 md:px-2 py-3 text-right text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[24%] md:w-[20%]">
                           Ventas ($)
                         </th>
-                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[14%]">
+                        <th className="px-1 md:px-2 py-3 text-right text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[14%]">
                           Tickets
                         </th>
-                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
+                        <th className="px-1 md:px-2 py-3 text-right text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
                           Facturas
                         </th>
-                        <th className="px-2 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
+                        <th className="px-1 md:px-2 py-3 text-right text-[10px] md:text-xs font-medium text-gray-500 uppercase tracking-wider w-[12%]">
                           Clientes
                         </th>
                       </tr>
@@ -1437,32 +1437,32 @@ export default function DashboardReal() {
                       {empresasConVentas.map((empresa, index) => {
                         return (
                           <tr key={index} className="hover:bg-gray-50">
-                            <td className="px-2 py-2 whitespace-nowrap text-xs font-bold text-gray-900">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[10px] md:text-xs font-bold text-gray-900">
                               {index + 1}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap">
                               <div className="flex items-center justify-center">
-                                <div className={`w-2.5 h-2.5 rounded-full ${statusColors[empresa.status]}`} title={statusLabels[empresa.status]}></div>
+                                <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${statusColors[empresa.status]}`} title={statusLabels[empresa.status]}></div>
                               </div>
                             </td>
-                            <td className="px-2 py-2 overflow-hidden">
-                              <div className="font-medium text-xs text-gray-900 truncate" title={empresa.nombre}>
+                            <td className="px-1 md:px-2 py-2 overflow-hidden">
+                              <div className="font-medium text-[10px] md:text-xs text-gray-900 truncate" title={empresa.nombre}>
                                 {empresa.nombre}
                               </div>
-                              <div className="text-[10px] text-gray-500 truncate" title={empresa.email}>
+                              <div className="text-[8px] md:text-[10px] text-gray-500 truncate" title={empresa.email}>
                                 {empresa.email}
                               </div>
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs text-right font-semibold text-green-600">
-                              ${empresa.totalVentas.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[9px] md:text-xs text-right font-semibold text-green-600">
+                              ${empresa.totalVentas.toLocaleString('es-MX', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs text-right text-gray-900">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[10px] md:text-xs text-right text-gray-900">
                               {empresa.ticketsGenerados.toLocaleString('es-MX')}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs text-right text-gray-900">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[10px] md:text-xs text-right text-gray-900">
                               {empresa.facturas.toLocaleString('es-MX')}
                             </td>
-                            <td className="px-2 py-2 whitespace-nowrap text-xs text-right text-gray-900">
+                            <td className="px-1 md:px-2 py-2 whitespace-nowrap text-[10px] md:text-xs text-right text-gray-900">
                               {empresa.clientes.toLocaleString('es-MX')}
                             </td>
                           </tr>
