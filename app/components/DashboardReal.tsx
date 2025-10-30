@@ -29,6 +29,7 @@ export default function DashboardReal() {
   const [error, setError] = useState<string | null>(null);
   const [diasInactividad, setDiasInactividad] = useState(7); // Slider de 1-60 días (default: 7)
   const [vistaAdopcion, setVistaAdopcion] = useState<'historica' | 'reciente'>('historica'); // Toggle para vista de adopción
+  const [showSemaforoModal, setShowSemaforoModal] = useState(false); // Modal para descripción del semáforo
 
   useEffect(() => {
     const fetchData = async () => {
@@ -286,10 +287,17 @@ export default function DashboardReal() {
       return ningunActividadReciente;
     }).length;
     
+    // NUNCA ACTIVOS: Empresas registradas que NUNCA han tenido actividad
+    const nuncaActivos = rows.filter(row => {
+      const tieneActividadHistorica = row[14] || row[16] || row[18] || row[20] || row[22] || row[24];
+      return !tieneActividadHistorica;
+    }).length;
+    
     const empresasActivas = {
       activos,
       exploradores,
       inactivos,
+      nuncaActivos,
       totalEmpresas: rows.length,
     };
 
@@ -519,11 +527,23 @@ export default function DashboardReal() {
           {/* Semáforo de Empresas: Activos / Exploradores / Inactivos */}
           <div className="bg-white rounded-lg shadow-md p-4 md:p-6">
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-4 md:mb-6 gap-4">
-              <div>
-                <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Estado de Empresas</h2>
-                <p className="text-xs md:text-sm text-gray-500 mt-1">
-                  Total de empresas registradas: <span className="font-bold text-blue-600">{chartData.empresasActivas.totalEmpresas}</span>
-                </p>
+              <div className="flex items-start gap-3">
+                <div className="flex-1">
+                  <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Estado de Empresas</h2>
+                  <p className="text-xs md:text-sm text-gray-500 mt-1">
+                    Total de empresas registradas: <span className="font-bold text-blue-600">{chartData.empresasActivas.totalEmpresas}</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSemaforoModal(true)}
+                  className="flex-shrink-0 px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs font-medium transition-colors duration-200 flex items-center gap-1.5"
+                  title="Ver descripción del semáforo"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Descripción
+                </button>
               </div>
               
               {/* Slider de días */}
@@ -546,7 +566,7 @@ export default function DashboardReal() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-4">
               {/* Activos (actividad comercial) */}
               <div className="text-center">
                 <div className="relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-3">
@@ -607,8 +627,172 @@ export default function DashboardReal() {
                 </p>
                 <p className="text-xs text-gray-500 px-2">Tenían actividad pero no en últimos {diasInactividad} días</p>
               </div>
+
+              {/* Nunca Activos (sin actividad histórica) */}
+              <div className="text-center">
+                <div className="relative w-20 h-20 md:w-24 md:h-24 mx-auto mb-3">
+                  <div className="absolute inset-0 bg-gray-400 rounded-full animate-pulse-soft"></div>
+                  <div className="absolute inset-2 bg-gray-300 rounded-full flex items-center justify-center shadow-lg">
+                    <svg className="w-8 h-8 md:w-10 md:h-10 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                </div>
+                <h3 className="font-bold text-gray-800 text-base md:text-lg mb-1">Sin Actividad</h3>
+                <p className="text-2xl md:text-3xl font-bold text-gray-600 mb-1">
+                  {chartData.empresasActivas.nuncaActivos}
+                  <span className="text-base md:text-lg ml-2 text-gray-500">
+                    ({((chartData.empresasActivas.nuncaActivos / chartData.empresasActivas.totalEmpresas) * 100).toFixed(1)}%)
+                  </span>
+                </p>
+                <p className="text-xs text-gray-500 px-2">Registrados pero nunca han usado la plataforma</p>
+              </div>
             </div>
           </div>
+
+          {/* Modal de Descripción del Semáforo */}
+          {showSemaforoModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowSemaforoModal(false)}>
+              <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-lg">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-2xl font-bold mb-2">Estado de Empresas - Explicación</h3>
+                      <p className="text-blue-100 text-sm">Cómo se clasifican las {chartData.empresasActivas.totalEmpresas} empresas registradas</p>
+                    </div>
+                    <button
+                      onClick={() => setShowSemaforoModal(false)}
+                      className="text-white hover:bg-white/20 rounded-lg p-2 transition-colors"
+                    >
+                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="p-6 space-y-6">
+                  {/* Explicación general */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      Propósito
+                    </h4>
+                    <p className="text-gray-700 text-sm">
+                      Este semáforo clasifica a las {chartData.empresasActivas.totalEmpresas} empresas registradas según su nivel de actividad en los últimos <strong>{diasInactividad} días</strong> (ajustable con el slider).
+                    </p>
+                  </div>
+
+                  {/* Desglose detallado */}
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-gray-900 text-lg">Clasificación Detallada:</h4>
+                    
+                    {/* Activos */}
+                    <div className="border-l-4 border-green-500 pl-4 py-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <h5 className="font-bold text-green-700">Activos: {chartData.empresasActivas.activos} ({((chartData.empresasActivas.activos / chartData.empresasActivas.totalEmpresas) * 100).toFixed(1)}%)</h5>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Empresas con <strong>actividad comercial</strong> en los últimos {diasInactividad} días:<br/>
+                        • Han generado tickets de venta<br/>
+                        • Han emitido facturas, o<br/>
+                        • Han creado cotizaciones
+                      </p>
+                    </div>
+
+                    {/* Exploradores */}
+                    <div className="border-l-4 border-yellow-500 pl-4 py-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <h5 className="font-bold text-yellow-700">Exploradores: {chartData.empresasActivas.exploradores} ({((chartData.empresasActivas.exploradores / chartData.empresasActivas.totalEmpresas) * 100).toFixed(1)}%)</h5>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Empresas <strong>configurando la plataforma</strong> en los últimos {diasInactividad} días:<br/>
+                        • Han agregado artículos al catálogo<br/>
+                        • Han registrado clientes, o<br/>
+                        • Han dado de alta proveedores<br/>
+                        <span className="text-yellow-700 font-medium">Pero AÚN NO tienen actividad comercial</span>
+                      </p>
+                    </div>
+
+                    {/* Inactivos */}
+                    <div className="border-l-4 border-red-500 pl-4 py-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <h5 className="font-bold text-red-700">Inactivos: {chartData.empresasActivas.inactivos} ({((chartData.empresasActivas.inactivos / chartData.empresasActivas.totalEmpresas) * 100).toFixed(1)}%)</h5>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Empresas que <strong>antes tenían actividad</strong> pero NO en los últimos {diasInactividad} días:<br/>
+                        • Solían usar la plataforma<br/>
+                        • Dejaron de generar actividad recientemente<br/>
+                        <span className="text-red-700 font-medium">Posible riesgo de churn - requieren atención</span>
+                      </p>
+                    </div>
+
+                    {/* Sin Actividad */}
+                    <div className="border-l-4 border-gray-400 pl-4 py-2">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                        <h5 className="font-bold text-gray-700">Sin Actividad: {chartData.empresasActivas.nuncaActivos} ({((chartData.empresasActivas.nuncaActivos / chartData.empresasActivas.totalEmpresas) * 100).toFixed(1)}%)</h5>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Empresas registradas que <strong>NUNCA han usado la plataforma</strong>:<br/>
+                        • Se registraron pero no han hecho nada<br/>
+                        • Sin actividad comercial ni exploratoria<br/>
+                        <span className="text-gray-700 font-medium">Oportunidad de onboarding - contactar para activación</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Verificación de suma */}
+                  <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
+                    <h4 className="font-bold text-gray-900 mb-3">Verificación de Totales:</h4>
+                    <div className="space-y-1 text-sm text-gray-700 font-mono">
+                      <div className="flex justify-between">
+                        <span>Activos:</span>
+                        <span className="text-green-600">{chartData.empresasActivas.activos}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Exploradores:</span>
+                        <span className="text-yellow-600">{chartData.empresasActivas.exploradores}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Inactivos:</span>
+                        <span className="text-red-600">{chartData.empresasActivas.inactivos}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Sin Actividad:</span>
+                        <span className="text-gray-600">{chartData.empresasActivas.nuncaActivos}</span>
+                      </div>
+                      <div className="border-t border-gray-400 mt-2 pt-2 flex justify-between font-bold">
+                        <span>TOTAL:</span>
+                        <span className="text-blue-600">
+                          {chartData.empresasActivas.activos + chartData.empresasActivas.exploradores + chartData.empresasActivas.inactivos + chartData.empresasActivas.nuncaActivos} 
+                          {chartData.empresasActivas.activos + chartData.empresasActivas.exploradores + chartData.empresasActivas.inactivos + chartData.empresasActivas.nuncaActivos === chartData.empresasActivas.totalEmpresas ? ' ✓' : ' ⚠️'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Porcentajes */}
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <h4 className="font-bold text-purple-900 mb-2 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                      </svg>
+                      Sobre los porcentajes
+                    </h4>
+                    <p className="text-sm text-gray-700">
+                      Todos los porcentajes están calculados sobre el total de <strong>{chartData.empresasActivas.totalEmpresas} empresas registradas</strong>. Por ejemplo, {chartData.empresasActivas.activos} activos representa el {((chartData.empresasActivas.activos / chartData.empresasActivas.totalEmpresas) * 100).toFixed(1)}% del total.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Grid de 2 columnas para gráficas principales */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
