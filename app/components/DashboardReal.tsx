@@ -874,8 +874,29 @@ export default function DashboardReal() {
               </div>
             </div>
             
-            <ResponsiveContainer width="100%" height={300} className="md:!h-[350px] lg:!h-[380px]">
-              <ComposedChart data={chartData.churnPorMes}>
+            <div className="relative">
+              {/* Overlay de "Trabajando en esta gráfica" */}
+              <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm mx-4 text-center border-2 border-amber-400">
+                  <div className="flex justify-center mb-3">
+                    <svg className="w-12 h-12 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-bold text-gray-900 mb-2">
+                    🚧 Se está trabajando en esta gráfica
+                  </h4>
+                  <p className="text-sm text-gray-600 mb-1">
+                    <strong>Temporalmente Inactiva</strong>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Requiere datos mensuales de actividad para mayor precisión
+                  </p>
+                </div>
+              </div>
+              
+              <ResponsiveContainer width="100%" height={300} className="md:!h-[350px] lg:!h-[380px]">
+                <ComposedChart data={chartData.churnPorMes}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="mes" angle={-45} textAnchor="end" height={80} />
                 <YAxis yAxisId="left" label={{ value: 'Empresas', angle: -90, position: 'insideLeft' }} />
@@ -924,6 +945,7 @@ export default function DashboardReal() {
                 <Line yAxisId="right" type="monotone" dataKey="tasaChurn" stroke="#DC2626" strokeWidth={3} name="% Churn" dot={{ r: 5, fill: '#DC2626' }} strokeDasharray="5 5" />
               </ComposedChart>
             </ResponsiveContainer>
+            </div>
           </ChartCard>
           </div>
 
@@ -952,8 +974,29 @@ export default function DashboardReal() {
               </div>
             </div>
             
-            <ResponsiveContainer width="100%" height={300} className="md:!h-[350px] lg:!h-[380px]">
-              <ComposedChart data={chartData.churnPorCohorte}>
+            <div className="relative">
+              {/* Overlay de "Trabajando en esta gráfica" */}
+              <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                <div className="bg-white rounded-xl shadow-2xl p-6 max-w-sm mx-4 text-center border-2 border-amber-400">
+                  <div className="flex justify-center mb-3">
+                    <svg className="w-12 h-12 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                  </div>
+                  <h4 className="text-lg font-bold text-gray-900 mb-2">
+                    🚧 Se está trabajando en esta gráfica
+                  </h4>
+                  <p className="text-sm text-gray-600 mb-1">
+                    <strong>Temporalmente Inactiva</strong>
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Requiere datos de reactivaciones para mayor precisión
+                  </p>
+                </div>
+              </div>
+              
+              <ResponsiveContainer width="100%" height={300} className="md:!h-[350px] lg:!h-[380px]">
+                <ComposedChart data={chartData.churnPorCohorte}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="mes" angle={-45} textAnchor="end" height={80} />
                 <YAxis yAxisId="left" label={{ value: 'Empresas', angle: -90, position: 'insideLeft' }} />
@@ -1002,6 +1045,7 @@ export default function DashboardReal() {
                 <Line yAxisId="right" type="monotone" dataKey="tasaChurn" stroke="#EA580C" strokeWidth={3} name="% Churn" dot={{ r: 5, fill: '#EA580C' }} strokeDasharray="5 5" />
               </ComposedChart>
             </ResponsiveContainer>
+            </div>
           </ChartCard>
 
           {/* Adopción de Features */}
