@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   Line,
+  LineChart,
   BarChart,
   Bar,
   Cell,
@@ -15,6 +16,13 @@ import {
   ComposedChart,
 } from 'recharts';
 import ChartCard from './ChartCard';
+
+// Helper function global para formatear mes YYYY-MM a "mes año"
+const formatMonth = (mesKey: string) => {
+  const [year, month] = mesKey.split('-');
+  const monthNames = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  return `${monthNames[parseInt(month) - 1]} ${year}`;
+};
 
 interface SheetData {
   success: boolean;
@@ -1536,7 +1544,7 @@ export default function DashboardReal() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
               
               {/* 1. COHORTES POR MES DE REGISTRO */}
-              {chartData && (() => {
+              {chartData && data && (() => {
                 const rows = data.slice(1);
                 
                 // Agrupar por mes de registro
@@ -1658,7 +1666,7 @@ export default function DashboardReal() {
               })()}
 
               {/* 2. TIME TO FIRST ACTION */}
-              {chartData && (() => {
+              {chartData && data && (() => {
                 const rows = data.slice(1);
                 
                 const empresasConTTFA = rows
@@ -1762,7 +1770,7 @@ export default function DashboardReal() {
               })()}
 
               {/* 3. CURVA DE RETENCIÓN */}
-              {chartData && (() => {
+              {chartData && data && (() => {
                 const rows = data.slice(1);
                 const hoy = new Date();
                 
