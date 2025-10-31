@@ -1146,6 +1146,9 @@ export default function DashboardReal() {
             </ChartCard>
           </div>
 
+          {/* Grid de 2 columnas para las tablas Top 15 */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+          
           {/* Top 15 Empresas por Actividad */}
           {data && (() => {
             const rows = data.slice(1);
@@ -1331,8 +1334,6 @@ export default function DashboardReal() {
             );
           })()}
 
-          {/* Grid de 2 columnas para las tablas Top 15 */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
           {/* Top 15 Empresas por Ventas Totales */}
           {(() => {
             if (!data) return null;
