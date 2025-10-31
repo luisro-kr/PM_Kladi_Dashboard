@@ -1510,6 +1510,387 @@ export default function DashboardReal() {
           </div>
           {/* Fin del grid de tablas Top 15 */}
 
+          {/* ============================================ */}
+          {/* SECCIÓN DE ANÁLISIS DE RETENCIÓN (EXPERIMENTAL) */}
+          {/* Esta sección puede eliminarse completamente sin afectar el resto */}
+          {/* ============================================ */}
+          <div className="mt-8 pt-8 border-t-4 border-purple-500">
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 mb-6 border-2 border-purple-200">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-purple-500 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg">
+                  🔬
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold text-purple-900">Análisis de Retención (Experimental)</h2>
+                  <p className="text-sm text-purple-700">Diagnóstico profundo para entender por qué tenemos bajo engagement</p>
+                </div>
+              </div>
+              <div className="mt-3 bg-white/50 rounded-lg p-3 border border-purple-200">
+                <p className="text-xs text-purple-800">
+                  <strong>Objetivo:</strong> Identificar si el problema es onboarding (nunca arrancan), retención (arrancan pero se van), o timing (cuándo se van exactamente).
+                </p>
+              </div>
+            </div>
+
+            {/* Grid de 3 gráficas de análisis */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+              
+              {/* 1. COHORTES POR MES DE REGISTRO */}
+              {chartData && (() => {
+                const rows = data.slice(1);
+                
+                // Agrupar por mes de registro
+                const cohortesPorMes = rows.reduce((acc: any, row) => {
+                  const fechaRegistro = row[0] ? new Date(row[0]) : null;
+                  if (!fechaRegistro) return acc;
+                  
+                  const mesRegistro = `${fechaRegistro.getFullYear()}-${String(fechaRegistro.getMonth() + 1).padStart(2, '0')}`;
+                  
+                  if (!acc[mesRegistro]) {
+                    acc[mesRegistro] = { activos: 0, exploradores: 0, inactivos: 0, sinActividad: 0, total: 0 };
+                  }
+                  
+                  // Determinar estado actual
+                  const hoy = new Date();
+                  const haceNDias = new Date(hoy.getTime() - diasInactividad * 24 * 60 * 60 * 1000);
+                  
+                  const ultimaVenta = row[14] ? new Date(row[14]) : null;
+                  const ultimaFactura = row[16] ? new Date(row[16]) : null;
+                  const ultimaCotizacion = row[18] ? new Date(row[18]) : null;
+                  const ultimoCliente = row[20] ? new Date(row[20]) : null;
+                  const ultimoProveedor = row[22] ? new Date(row[22]) : null;
+                  const ultimoArticulo = row[24] ? new Date(row[24]) : null;
+                  
+                  const tieneActividadComercial = 
+                    (ultimaVenta && ultimaVenta >= haceNDias) ||
+                    (ultimaFactura && ultimaFactura >= haceNDias) ||
+                    (ultimaCotizacion && ultimaCotizacion >= haceNDias);
+                  
+                  const tieneActividadExploratoria = 
+                    (ultimoCliente && ultimoCliente >= haceNDias) ||
+                    (ultimoProveedor && ultimoProveedor >= haceNDias) ||
+                    (ultimoArticulo && ultimoArticulo >= haceNDias);
+                  
+                  const tieneActividadHistorica = row[14] || row[16] || row[18] || row[20] || row[22] || row[24];
+                  
+                  if (tieneActividadComercial) {
+                    acc[mesRegistro].activos++;
+                  } else if (tieneActividadExploratoria) {
+                    acc[mesRegistro].exploradores++;
+                  } else if (tieneActividadHistorica) {
+                    acc[mesRegistro].inactivos++;
+                  } else {
+                    acc[mesRegistro].sinActividad++;
+                  }
+                  
+                  acc[mesRegistro].total++;
+                  return acc;
+                }, {});
+                
+                const cohortesData = Object.entries(cohortesPorMes)
+                  .map(([mes, stats]: [string, any]) => ({
+                    mes: formatMonth(mes),
+                    mesKey: mes,
+                    activos: stats.activos,
+                    exploradores: stats.exploradores,
+                    inactivos: stats.inactivos,
+                    sinActividad: stats.sinActividad,
+                    total: stats.total,
+                    pctActivos: ((stats.activos / stats.total) * 100).toFixed(1),
+                  }))
+                  .sort((a, b) => a.mesKey.localeCompare(b.mesKey));
+                
+                return (
+                  <ChartCard
+                    title="Cohortes por Mes de Registro"
+                    badge="Retención"
+                    badgeColor="purple"
+                    description="Muestra el estado actual de las empresas agrupadas por su mes de registro. Si las cohortes antiguas tienen más inactivos, el problema es retención. Si las nuevas ya están inactivas, el problema es onboarding."
+                    purpose="Identificar si perdemos usuarios con el tiempo (retención) o si nunca los activamos (onboarding)."
+                    dataUsed={['fecha_creacion_empresa', 'ultima_venta', 'ultima_factura', 'ultima_cotizacion']}
+                    dataSource="Google Sheets - Agrupado por mes de fecha_creacion_empresa"
+                  >
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={cohortesData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="mes" angle={-45} textAnchor="end" height={80} />
+                        <YAxis />
+                        <Tooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+                                  <p className="font-bold text-gray-800 mb-1">{payload[0].payload.mes}</p>
+                                  <p className="text-xs text-gray-600 mb-2">Total: {payload[0].payload.total}</p>
+                                  <div className="space-y-1 text-xs">
+                                    <p className="flex items-center gap-2">
+                                      <span className="w-3 h-3 bg-green-500 rounded-full"></span>
+                                      Activos: {payload[0].payload.activos} ({payload[0].payload.pctActivos}%)
+                                    </p>
+                                    <p className="flex items-center gap-2">
+                                      <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                                      Exploradores: {payload[0].payload.exploradores}
+                                    </p>
+                                    <p className="flex items-center gap-2">
+                                      <span className="w-3 h-3 bg-red-500 rounded-full"></span>
+                                      Inactivos: {payload[0].payload.inactivos}
+                                    </p>
+                                    <p className="flex items-center gap-2">
+                                      <span className="w-3 h-3 bg-gray-400 rounded-full"></span>
+                                      Sin Actividad: {payload[0].payload.sinActividad}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="activos" stackId="a" fill="#10B981" name="Activos" />
+                        <Bar dataKey="exploradores" stackId="a" fill="#F59E0B" name="Exploradores" />
+                        <Bar dataKey="inactivos" stackId="a" fill="#EF4444" name="Inactivos" />
+                        <Bar dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartCard>
+                );
+              })()}
+
+              {/* 2. TIME TO FIRST ACTION */}
+              {chartData && (() => {
+                const rows = data.slice(1);
+                
+                const empresasConTTFA = rows
+                  .map((row) => {
+                    const fechaRegistro = row[0] ? new Date(row[0]) : null;
+                    const primeraVenta = row[13] ? new Date(row[13]) : null;
+                    
+                    if (!fechaRegistro) return null;
+                    
+                    // Calcular días hasta primera venta
+                    let diasHastaPrimeraVenta = null;
+                    if (primeraVenta && primeraVenta >= fechaRegistro) {
+                      diasHastaPrimeraVenta = Math.floor((primeraVenta.getTime() - fechaRegistro.getTime()) / (1000 * 60 * 60 * 24));
+                    }
+                    
+                    // Determinar estado actual
+                    const hoy = new Date();
+                    const haceNDias = new Date(hoy.getTime() - diasInactividad * 24 * 60 * 60 * 1000);
+                    const ultimaVenta = row[14] ? new Date(row[14]) : null;
+                    const ultimaFactura = row[16] ? new Date(row[16]) : null;
+                    const ultimaCotizacion = row[18] ? new Date(row[18]) : null;
+                    
+                    const esActivo = 
+                      (ultimaVenta && ultimaVenta >= haceNDias) ||
+                      (ultimaFactura && ultimaFactura >= haceNDias) ||
+                      (ultimaCotizacion && ultimaCotizacion >= haceNDias);
+                    
+                    return {
+                      diasHastaPrimeraVenta,
+                      esActivo,
+                      nombre: row[1],
+                    };
+                  })
+                  .filter((item) => item !== null);
+                
+                // Agrupar en rangos
+                const rangos = [
+                  { label: 'Nunca', min: null, max: null, activos: 0, inactivos: 0 },
+                  { label: '0-7 días', min: 0, max: 7, activos: 0, inactivos: 0 },
+                  { label: '8-14 días', min: 8, max: 14, activos: 0, inactivos: 0 },
+                  { label: '15-30 días', min: 15, max: 30, activos: 0, inactivos: 0 },
+                  { label: '31-60 días', min: 31, max: 60, activos: 0, inactivos: 0 },
+                  { label: '60+ días', min: 61, max: Infinity, activos: 0, inactivos: 0 },
+                ];
+                
+                empresasConTTFA.forEach((emp: any) => {
+                  if (emp.diasHastaPrimeraVenta === null) {
+                    if (emp.esActivo) rangos[0].activos++;
+                    else rangos[0].inactivos++;
+                  } else {
+                    const rango = rangos.find(r => 
+                      r.min !== null && emp.diasHastaPrimeraVenta >= r.min && emp.diasHastaPrimeraVenta <= r.max
+                    );
+                    if (rango) {
+                      if (emp.esActivo) rango.activos++;
+                      else rango.inactivos++;
+                    }
+                  }
+                });
+                
+                return (
+                  <ChartCard
+                    title="Time to First Action"
+                    badge="Activación"
+                    badgeColor="purple"
+                    description="Días que tardaron las empresas en realizar su primera venta. Si las inactivas tardaron mucho o nunca la hicieron, el problema es onboarding deficiente."
+                    purpose="Identificar si las empresas inactivas nunca vieron valor (nunca hicieron primera venta) o si tardaron demasiado en arrancar."
+                    dataUsed={['fecha_creacion_empresa', 'primera_venta', 'ultima_venta']}
+                    dataSource="Google Sheets - Cálculo: primera_venta - fecha_creacion_empresa"
+                  >
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={rangos}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" angle={-45} textAnchor="end" height={80} />
+                        <YAxis />
+                        <Tooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              const total = payload[0].payload.activos + payload[0].payload.inactivos;
+                              return (
+                                <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+                                  <p className="font-bold text-gray-800 mb-2">{payload[0].payload.label}</p>
+                                  <p className="text-xs text-gray-600 mb-2">Total: {total} empresas</p>
+                                  <div className="space-y-1 text-xs">
+                                    <p className="text-green-600">Activos: {payload[0].payload.activos}</p>
+                                    <p className="text-red-600">Inactivos: {payload[0].payload.inactivos}</p>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Legend />
+                        <Bar dataKey="activos" stackId="a" fill="#10B981" name="Activos Hoy" />
+                        <Bar dataKey="inactivos" stackId="a" fill="#EF4444" name="Inactivos Hoy" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </ChartCard>
+                );
+              })()}
+
+              {/* 3. CURVA DE RETENCIÓN */}
+              {chartData && (() => {
+                const rows = data.slice(1);
+                const hoy = new Date();
+                
+                // Calcular retención en diferentes puntos temporales
+                const puntosRetencion = [
+                  { dias: 7, label: 'Día 7' },
+                  { dias: 14, label: 'Día 14' },
+                  { dias: 30, label: 'Día 30' },
+                  { dias: 60, label: 'Día 60' },
+                  { dias: 90, label: 'Día 90' },
+                  { dias: 180, label: 'Día 180' },
+                ];
+                
+                const curvaRetencion = puntosRetencion.map(punto => {
+                  // Filtrar empresas registradas hace al menos N días
+                  const empresasElegibles = rows.filter(row => {
+                    const fechaRegistro = row[0] ? new Date(row[0]) : null;
+                    if (!fechaRegistro) return false;
+                    
+                    const diasDesdeRegistro = Math.floor((hoy.getTime() - fechaRegistro.getTime()) / (1000 * 60 * 60 * 24));
+                    return diasDesdeRegistro >= punto.dias;
+                  });
+                  
+                  if (empresasElegibles.length === 0) {
+                    return {
+                      label: punto.label,
+                      dias: punto.dias,
+                      retencion: 0,
+                      activos: 0,
+                      total: 0,
+                    };
+                  }
+                  
+                  // Calcular cuántas estaban activas en ese momento
+                  // Asumimos "activas" = tuvieron actividad después del día N
+                  const activasEnPuntoN = empresasElegibles.filter(row => {
+                    const fechaRegistro = new Date(row[0]);
+                    const fechaPuntoN = new Date(fechaRegistro.getTime() + punto.dias * 24 * 60 * 60 * 1000);
+                    
+                    const ultimaVenta = row[14] ? new Date(row[14]) : null;
+                    const ultimaFactura = row[16] ? new Date(row[16]) : null;
+                    const ultimaCotizacion = row[18] ? new Date(row[18]) : null;
+                    
+                    // Tuvo actividad después del día N?
+                    return (
+                      (ultimaVenta && ultimaVenta >= fechaPuntoN) ||
+                      (ultimaFactura && ultimaFactura >= fechaPuntoN) ||
+                      (ultimaCotizacion && ultimaCotizacion >= fechaPuntoN)
+                    );
+                  }).length;
+                  
+                  const retencion = (activasEnPuntoN / empresasElegibles.length) * 100;
+                  
+                  return {
+                    label: punto.label,
+                    dias: punto.dias,
+                    retencion: parseFloat(retencion.toFixed(1)),
+                    activos: activasEnPuntoN,
+                    total: empresasElegibles.length,
+                  };
+                });
+                
+                return (
+                  <ChartCard
+                    title="Curva de Retención"
+                    badge="Lifecycle"
+                    badgeColor="purple"
+                    description="Porcentaje de empresas que siguen activas N días después de registrarse. Identifica el momento exacto donde pierdes usuarios (ej: caída fuerte en día 30 = crisis de onboarding)."
+                    purpose="Detectar el 'día crítico' donde se produce la mayor pérdida de usuarios para intervenir a tiempo."
+                    dataUsed={['fecha_creacion_empresa', 'ultima_venta', 'ultima_factura', 'ultima_cotizacion']}
+                    dataSource="Google Sheets - Análisis longitudinal de actividad post-registro"
+                  >
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={curvaRetencion}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" />
+                        <YAxis domain={[0, 100]} label={{ value: '% Retención', angle: -90, position: 'insideLeft' }} />
+                        <Tooltip 
+                          content={({ active, payload }) => {
+                            if (active && payload && payload.length) {
+                              return (
+                                <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+                                  <p className="font-bold text-gray-800 mb-2">{payload[0].payload.label}</p>
+                                  <div className="space-y-1 text-xs">
+                                    <p className="text-purple-700 font-bold text-lg">
+                                      {payload[0].payload.retencion}% retenidos
+                                    </p>
+                                    <p className="text-gray-600">
+                                      {payload[0].payload.activos} de {payload[0].payload.total} empresas
+                                    </p>
+                                    <p className="text-red-600">
+                                      Churn: {(100 - payload[0].payload.retencion).toFixed(1)}%
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="retencion" 
+                          stroke="#8B5CF6" 
+                          strokeWidth={3} 
+                          name="% Retención" 
+                          dot={{ r: 6, fill: '#8B5CF6' }}
+                          activeDot={{ r: 8 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </ChartCard>
+                );
+              })()}
+
+            </div>
+
+            {/* Footer de la sección experimental */}
+            <div className="mt-6 bg-purple-50 border-2 border-dashed border-purple-300 rounded-lg p-4 text-center">
+              <p className="text-sm text-purple-700">
+                💡 <strong>Análisis Experimental:</strong> Esta sección está separada del dashboard principal. 
+                Si no aporta valor, puede eliminarse fácilmente sin afectar las demás métricas.
+              </p>
+            </div>
+          </div>
+          {/* FIN SECCIÓN DE ANÁLISIS DE RETENCIÓN */}
+
         </div>
       </div>
     </div>
