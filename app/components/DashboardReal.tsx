@@ -362,6 +362,12 @@ export default function DashboardReal() {
         return ningunActividadReciente;
       }).length;
       
+      // Calcular sin actividad del mes (nunca han usado la plataforma)
+      const sinActividadDelMes = empresasDelMes.filter(row => {
+        const tieneActividadHistorica = row[14] || row[16] || row[18] || row[20] || row[22] || row[24];
+        return !tieneActividadHistorica;
+      }).length;
+      
       const totalDelMes = empresasDelMes.length;
       const porcentajeActivos = totalDelMes > 0 ? (activosDelMes / totalDelMes) * 100 : 0;
       
@@ -371,6 +377,7 @@ export default function DashboardReal() {
         activos: activosDelMes,
         exploradores: exploradoresDelMes,
         inactivos: inactivosDelMes,
+        sinActividad: sinActividadDelMes,
         total: totalDelMes,
         porcentajeActivos: parseFloat(porcentajeActivos.toFixed(1)),
       };
@@ -818,19 +825,23 @@ export default function DashboardReal() {
                       return (
                         <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
                           <p className="font-bold text-gray-800 mb-2">{payload[0].payload.mes}</p>
-                          <p className="text-sm text-gray-600">Total del mes: <span className="font-bold">{payload[0].payload.total}</span></p>
-                          <div className="mt-2 space-y-1">
+                          <p className="text-sm text-gray-600 mb-3">Total del mes: <span className="font-bold">{payload[0].payload.total}</span></p>
+                          <div className="space-y-1">
                             <p className="text-sm flex items-center gap-2">
                               <span className="w-3 h-3 bg-green-500 rounded-full"></span>
-                              <span>Activos: <span className="font-bold text-green-600">{payload[0].payload.activos}</span></span>
+                              <span className="text-gray-700">Activos: <span className="font-bold text-green-600">{payload[0].payload.activos}</span></span>
                             </p>
                             <p className="text-sm flex items-center gap-2">
                               <span className="w-3 h-3 bg-yellow-500 rounded-full"></span>
-                              <span>Exploradores: <span className="font-bold text-yellow-600">{payload[0].payload.exploradores}</span></span>
+                              <span className="text-gray-700">Exploradores: <span className="font-bold text-yellow-600">{payload[0].payload.exploradores}</span></span>
                             </p>
                             <p className="text-sm flex items-center gap-2">
                               <span className="w-3 h-3 bg-red-500 rounded-full"></span>
-                              <span>Inactivos: <span className="font-bold text-red-600">{payload[0].payload.inactivos}</span></span>
+                              <span className="text-gray-700">Inactivos: <span className="font-bold text-red-600">{payload[0].payload.inactivos}</span></span>
+                            </p>
+                            <p className="text-sm flex items-center gap-2">
+                              <span className="w-3 h-3 bg-gray-400 rounded-full"></span>
+                              <span className="text-gray-700">Sin Actividad: <span className="font-bold text-gray-600">{payload[0].payload.sinActividad}</span></span>
                             </p>
                             <p className="text-sm font-bold text-blue-600 mt-2 pt-2 border-t">
                               % Activos: {payload[0].payload.porcentajeActivos}%
@@ -846,6 +857,7 @@ export default function DashboardReal() {
                 <Bar yAxisId="left" dataKey="activos" stackId="a" fill="#10B981" name="Activos" />
                 <Bar yAxisId="left" dataKey="exploradores" stackId="a" fill="#F59E0B" name="Exploradores" />
                 <Bar yAxisId="left" dataKey="inactivos" stackId="a" fill="#EF4444" name="Inactivos" />
+                <Bar yAxisId="left" dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad" />
                 <Line yAxisId="right" type="monotone" dataKey="porcentajeActivos" stroke="#3B82F6" strokeWidth={3} name="% Activos" dot={{ r: 5 }} />
               </ComposedChart>
             </ResponsiveContainer>
