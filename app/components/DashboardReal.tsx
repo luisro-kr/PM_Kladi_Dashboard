@@ -40,6 +40,7 @@ export default function DashboardReal() {
   const [vistaAdopcion, setVistaAdopcion] = useState<'historica' | 'reciente'>('historica'); // Toggle para vista de adopción
   const [showSemaforoModal, setShowSemaforoModal] = useState(false); // Modal para descripción del semáforo
   const [categoriaAcumulativa, setCategoriaAcumulativa] = useState<'todos' | 'activos' | 'exploradores' | 'inactivos' | 'sinActividad'>('todos'); // Filtro para gráfica acumulativa
+  const [filtroAnio, setFiltroAnio] = useState<'2024' | '2025' | 'todos'>('2025'); // Filtro por año (default: 2025)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +76,18 @@ export default function DashboardReal() {
       };
     }
 
-    const rows = data.slice(1);
+    let rows = data.slice(1);
+    
+    // Filtrar por año si no es "todos"
+    if (filtroAnio !== 'todos') {
+      rows = rows.filter(row => {
+        if (!row[0]) return false; // Saltar filas sin fecha
+        const fechaParts = row[0].split('-');
+        if (fechaParts.length !== 3) return false;
+        const year = parseInt(fechaParts[0]);
+        return year.toString() === filtroAnio;
+      });
+    }
     
     // Helper function para formatear mes YYYY-MM a "mes año"
     const formatMonth = (mesKey: string) => {
@@ -561,6 +573,45 @@ export default function DashboardReal() {
                   </svg>
                   Descripción
                 </button>
+              </div>
+              
+              {/* Filtro por año */}
+              <div className="bg-gray-50 rounded-lg p-3 md:p-4 w-full lg:w-auto">
+                <label className="block text-xs md:text-sm font-medium text-gray-700 mb-2">
+                  Año a analizar
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setFiltroAnio('2024')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                      filtroAnio === '2024'
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                  >
+                    2024
+                  </button>
+                  <button
+                    onClick={() => setFiltroAnio('2025')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                      filtroAnio === '2025'
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                  >
+                    2025
+                  </button>
+                  <button
+                    onClick={() => setFiltroAnio('todos')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                      filtroAnio === 'todos'
+                        ? 'bg-blue-500 text-white shadow-lg'
+                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                  >
+                    Todos
+                  </button>
+                </div>
               </div>
               
               {/* Slider de días */}
