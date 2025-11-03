@@ -40,6 +40,7 @@ export default function DashboardReal() {
   const [vistaAdopcion, setVistaAdopcion] = useState<'historica' | 'reciente'>('historica'); // Toggle para vista de adopción
   const [showSemaforoModal, setShowSemaforoModal] = useState(false); // Modal para descripción del semáforo
   const [categoriaAcumulativa, setCategoriaAcumulativa] = useState<'todos' | 'activos' | 'exploradores' | 'inactivos' | 'sinActividad'>('activos'); // Filtro para gráfica acumulativa (default: activos)
+  const [categoriaEvolucion, setCategoriaEvolucion] = useState<'todos' | 'activos' | 'exploradores' | 'inactivos' | 'sinActividad'>('activos'); // Filtro para gráfica de evolución por mes (default: activos)
   const [filtroAnio, setFiltroAnio] = useState<'2024' | '2025' | 'todos'>('2025'); // Filtro por año (default: 2025)
 
   useEffect(() => {
@@ -1075,6 +1076,60 @@ export default function DashboardReal() {
               dataUsed={['fecha_creacion_empresa', 'ultima_venta', 'ultima_factura', 'ultima_cotizacion', 'ultimo_cliente_nuevo', 'ultimo_registro_proveedor', 'ultimo_articulo_agregado']}
               dataSource="Google Sheets - Hoja '2025', análisis basado en últimos N días (ajustable con slider)"
             >
+              {/* Botones de filtro */}
+              <div className="mb-4 flex flex-wrap gap-2">
+                <button
+                  onClick={() => setCategoriaEvolucion('activos')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    categoriaEvolucion === 'activos'
+                      ? 'bg-green-500 text-white shadow-lg'
+                      : 'bg-green-100 text-green-700 hover:bg-green-200'
+                  }`}
+                >
+                  Activos
+                </button>
+                <button
+                  onClick={() => setCategoriaEvolucion('exploradores')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    categoriaEvolucion === 'exploradores'
+                      ? 'bg-yellow-500 text-white shadow-lg'
+                      : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                  }`}
+                >
+                  Exploradores
+                </button>
+                <button
+                  onClick={() => setCategoriaEvolucion('inactivos')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    categoriaEvolucion === 'inactivos'
+                      ? 'bg-red-500 text-white shadow-lg'
+                      : 'bg-red-100 text-red-700 hover:bg-red-200'
+                  }`}
+                >
+                  Inactivos
+                </button>
+                <button
+                  onClick={() => setCategoriaEvolucion('sinActividad')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    categoriaEvolucion === 'sinActividad'
+                      ? 'bg-gray-500 text-white shadow-lg'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Sin Actividad
+                </button>
+                <button
+                  onClick={() => setCategoriaEvolucion('todos')}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                    categoriaEvolucion === 'todos'
+                      ? 'bg-blue-500 text-white shadow-lg'
+                      : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                  }`}
+                >
+                  Todos
+                </button>
+              </div>
+
               <ResponsiveContainer width="100%" height={350} className="md:!h-[400px] lg:!h-[430px]">
                 <ComposedChart data={chartData.estadoPorMes} margin={{ top: 20, right: 20, bottom: 5, left: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -1116,17 +1171,51 @@ export default function DashboardReal() {
                   }}
                 />
                 <Legend />
-                <Bar yAxisId="left" dataKey="activos" stackId="a" fill="#10B981" name="Activos" />
-                <Bar yAxisId="left" dataKey="exploradores" stackId="a" fill="#F59E0B" name="Exploradores" />
-                <Bar yAxisId="left" dataKey="inactivos" stackId="a" fill="#EF4444" name="Inactivos" />
-                <Bar yAxisId="left" dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad">
-                  <LabelList 
-                    dataKey="total" 
-                    position="top" 
-                    style={{ fill: '#000000', fontWeight: 'bold', fontSize: '12px' }}
-                  />
-                </Bar>
-                <Line yAxisId="right" type="monotone" dataKey="porcentajeActivos" stroke="#3B82F6" strokeWidth={3} name="% Activos" dot={{ r: 5 }} />
+                {(categoriaEvolucion === 'todos' || categoriaEvolucion === 'activos') && (
+                  <Bar yAxisId="left" dataKey="activos" stackId={categoriaEvolucion === 'todos' ? 'a' : undefined} fill="#10B981" name="Activos">
+                    {categoriaEvolucion === 'activos' && (
+                      <LabelList 
+                        dataKey="activos" 
+                        position="top" 
+                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#059669' }}
+                      />
+                    )}
+                  </Bar>
+                )}
+                {(categoriaEvolucion === 'todos' || categoriaEvolucion === 'exploradores') && (
+                  <Bar yAxisId="left" dataKey="exploradores" stackId={categoriaEvolucion === 'todos' ? 'a' : undefined} fill="#F59E0B" name="Exploradores">
+                    {categoriaEvolucion === 'exploradores' && (
+                      <LabelList 
+                        dataKey="exploradores" 
+                        position="top" 
+                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#D97706' }}
+                      />
+                    )}
+                  </Bar>
+                )}
+                {(categoriaEvolucion === 'todos' || categoriaEvolucion === 'inactivos') && (
+                  <Bar yAxisId="left" dataKey="inactivos" stackId={categoriaEvolucion === 'todos' ? 'a' : undefined} fill="#EF4444" name="Inactivos">
+                    {categoriaEvolucion === 'inactivos' && (
+                      <LabelList 
+                        dataKey="inactivos" 
+                        position="top" 
+                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#DC2626' }}
+                      />
+                    )}
+                  </Bar>
+                )}
+                {(categoriaEvolucion === 'todos' || categoriaEvolucion === 'sinActividad') && (
+                  <Bar yAxisId="left" dataKey="sinActividad" stackId={categoriaEvolucion === 'todos' ? 'a' : undefined} fill="#9CA3AF" name="Sin Actividad">
+                    <LabelList 
+                      dataKey={categoriaEvolucion === 'todos' ? 'total' : 'sinActividad'} 
+                      position="top" 
+                      style={{ fontSize: '11px', fontWeight: 'bold', fill: categoriaEvolucion === 'todos' ? '#374151' : '#6B7280' }}
+                    />
+                  </Bar>
+                )}
+                {categoriaEvolucion === 'todos' && (
+                  <Line yAxisId="right" type="monotone" dataKey="porcentajeActivos" stroke="#3B82F6" strokeWidth={3} name="% Activos" dot={{ r: 5 }} />
+                )}
               </ComposedChart>
             </ResponsiveContainer>
           </ChartCard>
