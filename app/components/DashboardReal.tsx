@@ -1048,12 +1048,21 @@ export default function DashboardReal() {
                     )}
                   </Bar>
                 )}
-                {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'sinActividad') && (
-                  <Bar yAxisId="left" dataKey="sinActividad" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#9CA3AF" name="Sin Actividad Acumulados">
+                {categoriaAcumulativa === 'todos' && (
+                  <Bar yAxisId="left" dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad Acumulados">
                     <LabelList 
-                      dataKey={categoriaAcumulativa === 'todos' ? 'total' : 'sinActividad'} 
+                      dataKey="total" 
                       position="top" 
-                      style={{ fontSize: '11px', fontWeight: 'bold', fill: categoriaAcumulativa === 'todos' ? '#374151' : '#6B7280' }}
+                      style={{ fontSize: '11px', fontWeight: 'bold', fill: '#374151' }}
+                    />
+                  </Bar>
+                )}
+                {categoriaAcumulativa === 'sinActividad' && (
+                  <Bar yAxisId="left" dataKey="sinActividad" fill="#9CA3AF" name="Sin Actividad Acumulados">
+                    <LabelList 
+                      dataKey="sinActividad" 
+                      position="top" 
+                      style={{ fontSize: '11px', fontWeight: 'bold', fill: '#6B7280' }}
                     />
                   </Bar>
                 )}
@@ -1202,12 +1211,21 @@ export default function DashboardReal() {
                     )}
                   </Bar>
                 )}
-                {(categoriaEvolucion === 'todos' || categoriaEvolucion === 'sinActividad') && (
-                  <Bar yAxisId="left" dataKey="sinActividad" stackId={categoriaEvolucion === 'todos' ? 'a' : undefined} fill="#9CA3AF" name="Sin Actividad">
+                {categoriaEvolucion === 'todos' && (
+                  <Bar yAxisId="left" dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad">
                     <LabelList 
-                      dataKey={categoriaEvolucion === 'todos' ? 'total' : 'sinActividad'} 
+                      dataKey="total" 
                       position="top" 
-                      style={{ fontSize: '11px', fontWeight: 'bold', fill: categoriaEvolucion === 'todos' ? '#374151' : '#6B7280' }}
+                      style={{ fontSize: '11px', fontWeight: 'bold', fill: '#374151' }}
+                    />
+                  </Bar>
+                )}
+                {categoriaEvolucion === 'sinActividad' && (
+                  <Bar yAxisId="left" dataKey="sinActividad" fill="#9CA3AF" name="Sin Actividad">
+                    <LabelList 
+                      dataKey="sinActividad" 
+                      position="top" 
+                      style={{ fontSize: '11px', fontWeight: 'bold', fill: '#6B7280' }}
                     />
                   </Bar>
                 )}
