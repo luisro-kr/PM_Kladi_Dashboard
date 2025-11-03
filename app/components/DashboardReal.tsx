@@ -1525,6 +1525,119 @@ export default function DashboardReal() {
           </div>
           {/* Fin del grid de tablas Top 15 */}
 
+          {/* Evolución Acumulativa de Usuarios Activos */}
+          <ChartCard
+            title="Evolución Acumulativa de Usuarios Activos"
+            badge="Acumulado"
+            badgeColor="blue"
+            description="Muestra el crecimiento acumulativo de usuarios activos a lo largo del tiempo. A diferencia de la gráfica de estado mensual (que muestra una 'fotografía' de cada mes), esta gráfica suma usuarios que se activaron mes a mes. Si en enero se activaron 7 usuarios y en febrero 2 más, febrero mostrará 9 usuarios activos acumulados."
+            purpose="Visualizar si la base de usuarios activos crece o decrece con el tiempo. Permite identificar tendencias de crecimiento sostenido, estancamiento o pérdida neta de usuarios. Útil para evaluar el impacto de estrategias de activación y retención."
+            dataUsed={['ultima_venta', 'ultima_factura', 'ultima_cotizacion', 'ultimo_cliente_nuevo', 'ultimo_registro_proveedor', 'ultimo_articulo_agregado']}
+            dataSource="Google Sheets - Hoja '2025'. Calcula totales acumulativos de usuarios en cada categoría (Activos, Exploradores, Inactivos, Sin Actividad) desde el inicio hasta cada mes."
+          >
+            <ResponsiveContainer width="100%" height={350} className="md:!h-[400px] lg:!h-[430px]">
+              <ComposedChart 
+                data={(() => {
+                  // Calcular totales acumulativos
+                  let cumulativeActivos = 0;
+                  let cumulativeExploradores = 0;
+                  let cumulativeInactivos = 0;
+                  let cumulativeSinActividad = 0;
+                  
+                  return chartData.estadoPorMes.map(mes => {
+                    cumulativeActivos += mes.activos;
+                    cumulativeExploradores += mes.exploradores;
+                    cumulativeInactivos += mes.inactivos;
+                    cumulativeSinActividad += mes.sinActividad;
+                    
+                    const total = cumulativeActivos + cumulativeExploradores + cumulativeInactivos + cumulativeSinActividad;
+                    const porcentajeActivos = total > 0 ? (cumulativeActivos / total) * 100 : 0;
+                    
+                    return {
+                      mes: mes.mes,
+                      activos: cumulativeActivos,
+                      exploradores: cumulativeExploradores,
+                      inactivos: cumulativeInactivos,
+                      sinActividad: cumulativeSinActividad,
+                      total: total,
+                      porcentajeActivos: parseFloat(porcentajeActivos.toFixed(1))
+                    };
+                  });
+                })()}
+                margin={{ top: 20, right: 20, bottom: 5, left: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="mes" 
+                  angle={-45} 
+                  textAnchor="end" 
+                  height={80}
+                  tick={{ fontSize: 11 }}
+                />
+                <YAxis 
+                  yAxisId="left"
+                  label={{ value: 'Empresas Acumuladas', angle: -90, position: 'insideLeft', style: { fontSize: 12 } }}
+                />
+                <YAxis 
+                  yAxisId="right"
+                  orientation="right"
+                  label={{ value: '% Activos', angle: 90, position: 'insideRight', style: { fontSize: 12 } }}
+                  domain={[0, 100]}
+                />
+                <Tooltip 
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-white p-3 border border-gray-300 rounded shadow-lg">
+                          <p className="font-semibold text-gray-900 mb-2">{data.mes}</p>
+                          <div className="space-y-1 text-sm">
+                            <p className="text-green-700">
+                              <span className="font-medium">Activos:</span> {data.activos.toLocaleString('es-MX')}
+                            </p>
+                            <p className="text-yellow-700">
+                              <span className="font-medium">Exploradores:</span> {data.exploradores.toLocaleString('es-MX')}
+                            </p>
+                            <p className="text-red-700">
+                              <span className="font-medium">Inactivos:</span> {data.inactivos.toLocaleString('es-MX')}
+                            </p>
+                            <p className="text-gray-600">
+                              <span className="font-medium">Sin Actividad:</span> {data.sinActividad.toLocaleString('es-MX')}
+                            </p>
+                            <p className="font-semibold text-gray-900 pt-2 border-t border-gray-200">
+                              Total Acumulado: {data.total.toLocaleString('es-MX')}
+                            </p>
+                            <p className="text-blue-700 font-medium">
+                              % Activos: {data.porcentajeActivos}%
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+                <Legend 
+                  wrapperStyle={{
+                    paddingTop: '20px'
+                  }}
+                  formatter={(value) => <span style={{ color: '#374151', fontWeight: '600' }}>{value}</span>}
+                />
+                <Bar yAxisId="left" dataKey="activos" stackId="a" fill="#10B981" name="Activos Acumulados" />
+                <Bar yAxisId="left" dataKey="exploradores" stackId="a" fill="#FBBF24" name="Exploradores Acumulados" />
+                <Bar yAxisId="left" dataKey="inactivos" stackId="a" fill="#EF4444" name="Inactivos Acumulados" />
+                <Bar yAxisId="left" dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad Acumulados">
+                  <LabelList 
+                    dataKey="total" 
+                    position="top" 
+                    style={{ fontSize: '11px', fontWeight: 'bold', fill: '#374151' }}
+                  />
+                </Bar>
+                <Line yAxisId="right" type="monotone" dataKey="porcentajeActivos" stroke="#3B82F6" strokeWidth={3} name="% Activos Acumulados" dot={{ r: 5, fill: '#3B82F6' }} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </ChartCard>
+
           {/* ============================================ */}
           {/* SECCIÓN DE ANÁLISIS DE RETENCIÓN (EXPERIMENTAL) */}
           {/* Esta sección puede eliminarse completamente sin afectar el resto */}
