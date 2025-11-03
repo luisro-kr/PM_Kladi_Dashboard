@@ -1918,7 +1918,25 @@ export default function DashboardReal() {
               
               {/* 1. COHORTES POR MES DE REGISTRO */}
               {chartData && data && (() => {
-                const rows = data.slice(1);
+                // Aplicar filtros (año y @mailinator.com)
+                let rows = data.slice(1);
+                
+                // Filtrar por año si no es "todos"
+                if (filtroAnio !== 'todos') {
+                  rows = rows.filter(row => {
+                    if (!row[0]) return false;
+                    const fechaParts = row[0].split('-');
+                    if (fechaParts.length !== 3) return false;
+                    const year = parseInt(fechaParts[0]);
+                    return year.toString() === filtroAnio;
+                  });
+                }
+                
+                // Filtrar cuentas de prueba (@mailinator.com)
+                rows = rows.filter(row => {
+                  const correo = row[3] || '';
+                  return !correo.toLowerCase().endsWith('@mailinator.com');
+                });
                 
                 // Agrupar por mes de registro
                 const cohortesPorMes = rows.reduce((acc: any, row) => {
@@ -2040,7 +2058,25 @@ export default function DashboardReal() {
 
               {/* 2. TIME TO FIRST ACTION */}
               {chartData && data && (() => {
-                const rows = data.slice(1);
+                // Aplicar filtros (año y @mailinator.com)
+                let rows = data.slice(1);
+                
+                // Filtrar por año si no es "todos"
+                if (filtroAnio !== 'todos') {
+                  rows = rows.filter(row => {
+                    if (!row[0]) return false;
+                    const fechaParts = row[0].split('-');
+                    if (fechaParts.length !== 3) return false;
+                    const year = parseInt(fechaParts[0]);
+                    return year.toString() === filtroAnio;
+                  });
+                }
+                
+                // Filtrar cuentas de prueba (@mailinator.com)
+                rows = rows.filter(row => {
+                  const correo = row[3] || '';
+                  return !correo.toLowerCase().endsWith('@mailinator.com');
+                });
                 
                 const empresasConTTFA = rows
                   .map((row) => {
@@ -2144,7 +2180,26 @@ export default function DashboardReal() {
 
               {/* 3. CURVA DE RETENCIÓN */}
               {chartData && data && (() => {
-                const rows = data.slice(1);
+                // Aplicar filtros (año y @mailinator.com)
+                let rows = data.slice(1);
+                
+                // Filtrar por año si no es "todos"
+                if (filtroAnio !== 'todos') {
+                  rows = rows.filter(row => {
+                    if (!row[0]) return false;
+                    const fechaParts = row[0].split('-');
+                    if (fechaParts.length !== 3) return false;
+                    const year = parseInt(fechaParts[0]);
+                    return year.toString() === filtroAnio;
+                  });
+                }
+                
+                // Filtrar cuentas de prueba (@mailinator.com)
+                rows = rows.filter(row => {
+                  const correo = row[3] || '';
+                  return !correo.toLowerCase().endsWith('@mailinator.com');
+                });
+                
                 const hoy = new Date();
                 
                 // Calcular retención en diferentes puntos temporales
