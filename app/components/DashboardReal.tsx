@@ -1064,18 +1064,16 @@ export default function DashboardReal() {
             </ResponsiveContainer>
           </ChartCard>
 
-          {/* Grid de 2 columnas para gráficas principales */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {/* Evolución de Estado por Mes */}
-            <ChartCard
-              title="Evolución de Estado de Empresas por Mes"
-              badge="Tendencias"
-              badgeColor="purple"
-              description="Muestra cómo ha evolucionado el estado de las empresas mes a mes: Activos (actividad comercial), Exploradores (configurando plataforma) e Inactivos (sin actividad reciente)."
-              purpose="Identificar tendencias de activación y retención. Detectar meses con problemas de churn o baja activación. Medir el impacto de mejoras en el producto y onboarding."
-              dataUsed={['fecha_creacion_empresa', 'ultima_venta', 'ultima_factura', 'ultima_cotizacion', 'ultimo_cliente_nuevo', 'ultimo_registro_proveedor', 'ultimo_articulo_agregado']}
-              dataSource="Google Sheets - Hoja '2025', análisis basado en últimos N días (ajustable con slider)"
-            >
+          {/* Evolución de Estado por Mes (Full Width) */}
+          <ChartCard
+            title="Evolución de Estado de Empresas por Mes"
+            badge="Tendencias"
+            badgeColor="purple"
+            description="Muestra cómo ha evolucionado el estado de las empresas mes a mes: Activos (actividad comercial), Exploradores (configurando plataforma) e Inactivos (sin actividad reciente)."
+            purpose="Identificar tendencias de activación y retención. Detectar meses con problemas de churn o baja activación. Medir el impacto de mejoras en el producto y onboarding."
+            dataUsed={['fecha_creacion_empresa', 'ultima_venta', 'ultima_factura', 'ultima_cotizacion', 'ultimo_cliente_nuevo', 'ultimo_registro_proveedor', 'ultimo_articulo_agregado']}
+            dataSource="Google Sheets - Hoja '2025', análisis basado en últimos N días (ajustable con slider)"
+          >
               {/* Botones de filtro */}
               <div className="mb-4 flex flex-wrap gap-2">
                 <button
@@ -1220,6 +1218,8 @@ export default function DashboardReal() {
             </ResponsiveContainer>
           </ChartCard>
 
+          {/* Grid de 1 columna para gráfica de Churn (full width) */}
+          <div className="grid grid-cols-1 gap-4 md:gap-6">
           {/* Churn y Retención Mensual */}
           <ChartCard
             title="Evolución de Churn y Retención por Mes"
