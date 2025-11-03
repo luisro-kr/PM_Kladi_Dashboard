@@ -90,6 +90,12 @@ export default function DashboardReal() {
       });
     }
     
+    // Filtrar cuentas de prueba (@mailinator.com)
+    rows = rows.filter(row => {
+      const correo = row[3] || ''; // Columna 3 es el correo
+      return !correo.toLowerCase().endsWith('@mailinator.com');
+    });
+    
     // Helper function para formatear mes YYYY-MM a "mes año"
     const formatMonth = (mesKey: string) => {
       const [year, month] = mesKey.split('-');
