@@ -39,6 +39,7 @@ export default function DashboardReal() {
   const [diasInactividad, setDiasInactividad] = useState(7); // Slider de 1-60 días (default: 7)
   const [vistaAdopcion, setVistaAdopcion] = useState<'historica' | 'reciente'>('historica'); // Toggle para vista de adopción
   const [showSemaforoModal, setShowSemaforoModal] = useState(false); // Modal para descripción del semáforo
+  const [categoriaAcumulativa, setCategoriaAcumulativa] = useState<'todos' | 'activos' | 'exploradores' | 'inactivos' | 'sinActividad'>('todos'); // Filtro para gráfica acumulativa
 
   useEffect(() => {
     const fetchData = async () => {
@@ -820,6 +821,60 @@ export default function DashboardReal() {
             dataUsed={['ultima_venta', 'ultima_factura', 'ultima_cotizacion', 'ultimo_cliente_nuevo', 'ultimo_registro_proveedor', 'ultimo_articulo_agregado']}
             dataSource="Google Sheets - Hoja '2025'. Calcula totales acumulativos de usuarios en cada categoría (Activos, Exploradores, Inactivos, Sin Actividad) desde el inicio hasta cada mes."
           >
+            {/* Botones de filtro */}
+            <div className="mb-4 flex flex-wrap gap-2">
+              <button
+                onClick={() => setCategoriaAcumulativa('activos')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  categoriaAcumulativa === 'activos'
+                    ? 'bg-green-500 text-white shadow-lg'
+                    : 'bg-green-100 text-green-700 hover:bg-green-200'
+                }`}
+              >
+                Activos
+              </button>
+              <button
+                onClick={() => setCategoriaAcumulativa('exploradores')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  categoriaAcumulativa === 'exploradores'
+                    ? 'bg-yellow-500 text-white shadow-lg'
+                    : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
+                }`}
+              >
+                Exploradores
+              </button>
+              <button
+                onClick={() => setCategoriaAcumulativa('inactivos')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  categoriaAcumulativa === 'inactivos'
+                    ? 'bg-red-500 text-white shadow-lg'
+                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                }`}
+              >
+                Inactivos
+              </button>
+              <button
+                onClick={() => setCategoriaAcumulativa('sinActividad')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  categoriaAcumulativa === 'sinActividad'
+                    ? 'bg-gray-500 text-white shadow-lg'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Sin Actividad
+              </button>
+              <button
+                onClick={() => setCategoriaAcumulativa('todos')}
+                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${
+                  categoriaAcumulativa === 'todos'
+                    ? 'bg-blue-500 text-white shadow-lg'
+                    : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                }`}
+              >
+                Todos
+              </button>
+            </div>
+
             <ResponsiveContainer width="100%" height={350} className="md:!h-[400px] lg:!h-[430px]">
               <ComposedChart 
                 data={(() => {
@@ -908,17 +963,29 @@ export default function DashboardReal() {
                   }}
                   formatter={(value) => <span style={{ color: '#374151', fontWeight: '600' }}>{value}</span>}
                 />
-                <Bar yAxisId="left" dataKey="activos" stackId="a" fill="#10B981" name="Activos Acumulados" />
-                <Bar yAxisId="left" dataKey="exploradores" stackId="a" fill="#FBBF24" name="Exploradores Acumulados" />
-                <Bar yAxisId="left" dataKey="inactivos" stackId="a" fill="#EF4444" name="Inactivos Acumulados" />
-                <Bar yAxisId="left" dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad Acumulados">
-                  <LabelList 
-                    dataKey="total" 
-                    position="top" 
-                    style={{ fontSize: '11px', fontWeight: 'bold', fill: '#374151' }}
-                  />
-                </Bar>
-                <Line yAxisId="right" type="monotone" dataKey="porcentajeActivos" stroke="#3B82F6" strokeWidth={3} name="% Activos Acumulados" dot={{ r: 5, fill: '#3B82F6' }} />
+                {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'activos') && (
+                  <Bar yAxisId="left" dataKey="activos" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#10B981" name="Activos Acumulados" />
+                )}
+                {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'exploradores') && (
+                  <Bar yAxisId="left" dataKey="exploradores" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#FBBF24" name="Exploradores Acumulados" />
+                )}
+                {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'inactivos') && (
+                  <Bar yAxisId="left" dataKey="inactivos" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#EF4444" name="Inactivos Acumulados" />
+                )}
+                {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'sinActividad') && (
+                  <Bar yAxisId="left" dataKey="sinActividad" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#9CA3AF" name="Sin Actividad Acumulados">
+                    {categoriaAcumulativa === 'todos' && (
+                      <LabelList 
+                        dataKey="total" 
+                        position="top" 
+                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#374151' }}
+                      />
+                    )}
+                  </Bar>
+                )}
+                {categoriaAcumulativa === 'todos' && (
+                  <Line yAxisId="right" type="monotone" dataKey="porcentajeActivos" stroke="#3B82F6" strokeWidth={3} name="% Activos Acumulados" dot={{ r: 5, fill: '#3B82F6' }} />
+                )}
               </ComposedChart>
             </ResponsiveContainer>
           </ChartCard>
