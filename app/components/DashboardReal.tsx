@@ -927,7 +927,7 @@ export default function DashboardReal() {
               </button>
             </div>
 
-            <ResponsiveContainer width="100%" height={350} className="md:!h-[400px] lg:!h-[430px]">
+            <ResponsiveContainer width="100%" height={280} className="md:!h-[320px] lg:!h-[340px]">
               <ComposedChart 
                 data={(() => {
                   // Calcular totales acumulativos
@@ -1137,7 +1137,7 @@ export default function DashboardReal() {
                 </button>
               </div>
 
-              <ResponsiveContainer width="100%" height={350} className="md:!h-[400px] lg:!h-[430px]">
+              <ResponsiveContainer width="100%" height={280} className="md:!h-[320px] lg:!h-[340px]">
                 <ComposedChart data={chartData.estadoPorMes} margin={{ top: 20, right: 20, bottom: 5, left: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="mes" angle={-45} textAnchor="end" height={80} />
