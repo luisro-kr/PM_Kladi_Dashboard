@@ -822,8 +822,8 @@ export default function DashboardReal() {
               dataUsed={['fecha_creacion_empresa', 'ultima_venta', 'ultima_factura', 'ultima_cotizacion', 'ultimo_cliente_nuevo', 'ultimo_registro_proveedor', 'ultimo_articulo_agregado']}
               dataSource="Google Sheets - Hoja '2025', análisis basado en últimos N días (ajustable con slider)"
             >
-              <ResponsiveContainer width="100%" height={300} className="md:!h-[350px] lg:!h-[380px]">
-                <ComposedChart data={chartData.estadoPorMes}>
+              <ResponsiveContainer width="100%" height={350} className="md:!h-[400px] lg:!h-[430px]">
+                <ComposedChart data={chartData.estadoPorMes} margin={{ top: 20, right: 20, bottom: 5, left: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="mes" angle={-45} textAnchor="end" height={80} />
                 <YAxis yAxisId="left" label={{ value: 'Empresas', angle: -90, position: 'insideLeft' }} />
