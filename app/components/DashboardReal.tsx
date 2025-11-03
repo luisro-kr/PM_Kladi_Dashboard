@@ -39,7 +39,7 @@ export default function DashboardReal() {
   const [diasInactividad, setDiasInactividad] = useState(7); // Slider de 1-60 días (default: 7)
   const [vistaAdopcion, setVistaAdopcion] = useState<'historica' | 'reciente'>('historica'); // Toggle para vista de adopción
   const [showSemaforoModal, setShowSemaforoModal] = useState(false); // Modal para descripción del semáforo
-  const [categoriaAcumulativa, setCategoriaAcumulativa] = useState<'todos' | 'activos' | 'exploradores' | 'inactivos' | 'sinActividad'>('todos'); // Filtro para gráfica acumulativa
+  const [categoriaAcumulativa, setCategoriaAcumulativa] = useState<'todos' | 'activos' | 'exploradores' | 'inactivos' | 'sinActividad'>('activos'); // Filtro para gráfica acumulativa (default: activos)
   const [filtroAnio, setFiltroAnio] = useState<'2024' | '2025' | 'todos'>('2025'); // Filtro por año (default: 2025)
 
   useEffect(() => {
@@ -1049,20 +1049,11 @@ export default function DashboardReal() {
                 )}
                 {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'sinActividad') && (
                   <Bar yAxisId="left" dataKey="sinActividad" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#9CA3AF" name="Sin Actividad Acumulados">
-                    {categoriaAcumulativa === 'todos' && (
-                      <LabelList 
-                        dataKey="total" 
-                        position="top" 
-                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#374151' }}
-                      />
-                    )}
-                    {categoriaAcumulativa === 'sinActividad' && (
-                      <LabelList 
-                        dataKey="sinActividad" 
-                        position="top" 
-                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#6B7280' }}
-                      />
-                    )}
+                    <LabelList 
+                      dataKey={categoriaAcumulativa === 'todos' ? 'total' : 'sinActividad'} 
+                      position="top" 
+                      style={{ fontSize: '11px', fontWeight: 'bold', fill: categoriaAcumulativa === 'todos' ? '#374151' : '#6B7280' }}
+                    />
                   </Bar>
                 )}
                 {categoriaAcumulativa === 'todos' && (
