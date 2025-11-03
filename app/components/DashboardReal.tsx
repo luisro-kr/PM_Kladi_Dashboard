@@ -14,6 +14,7 @@ import {
   Legend,
   ResponsiveContainer,
   ComposedChart,
+  LabelList,
 } from 'recharts';
 import ChartCard from './ChartCard';
 
@@ -865,7 +866,13 @@ export default function DashboardReal() {
                 <Bar yAxisId="left" dataKey="activos" stackId="a" fill="#10B981" name="Activos" />
                 <Bar yAxisId="left" dataKey="exploradores" stackId="a" fill="#F59E0B" name="Exploradores" />
                 <Bar yAxisId="left" dataKey="inactivos" stackId="a" fill="#EF4444" name="Inactivos" />
-                <Bar yAxisId="left" dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad" />
+                <Bar yAxisId="left" dataKey="sinActividad" stackId="a" fill="#9CA3AF" name="Sin Actividad">
+                  <LabelList 
+                    dataKey="total" 
+                    position="top" 
+                    style={{ fill: '#000000', fontWeight: 'bold', fontSize: '12px' }}
+                  />
+                </Bar>
                 <Line yAxisId="right" type="monotone" dataKey="porcentajeActivos" stroke="#3B82F6" strokeWidth={3} name="% Activos" dot={{ r: 5 }} />
               </ComposedChart>
             </ResponsiveContainer>
