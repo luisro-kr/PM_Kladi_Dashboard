@@ -964,13 +964,37 @@ export default function DashboardReal() {
                   formatter={(value) => <span style={{ color: '#374151', fontWeight: '600' }}>{value}</span>}
                 />
                 {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'activos') && (
-                  <Bar yAxisId="left" dataKey="activos" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#10B981" name="Activos Acumulados" />
+                  <Bar yAxisId="left" dataKey="activos" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#10B981" name="Activos Acumulados">
+                    {categoriaAcumulativa === 'activos' && (
+                      <LabelList 
+                        dataKey="activos" 
+                        position="top" 
+                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#059669' }}
+                      />
+                    )}
+                  </Bar>
                 )}
                 {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'exploradores') && (
-                  <Bar yAxisId="left" dataKey="exploradores" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#FBBF24" name="Exploradores Acumulados" />
+                  <Bar yAxisId="left" dataKey="exploradores" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#FBBF24" name="Exploradores Acumulados">
+                    {categoriaAcumulativa === 'exploradores' && (
+                      <LabelList 
+                        dataKey="exploradores" 
+                        position="top" 
+                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#D97706' }}
+                      />
+                    )}
+                  </Bar>
                 )}
                 {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'inactivos') && (
-                  <Bar yAxisId="left" dataKey="inactivos" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#EF4444" name="Inactivos Acumulados" />
+                  <Bar yAxisId="left" dataKey="inactivos" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#EF4444" name="Inactivos Acumulados">
+                    {categoriaAcumulativa === 'inactivos' && (
+                      <LabelList 
+                        dataKey="inactivos" 
+                        position="top" 
+                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#DC2626' }}
+                      />
+                    )}
+                  </Bar>
                 )}
                 {(categoriaAcumulativa === 'todos' || categoriaAcumulativa === 'sinActividad') && (
                   <Bar yAxisId="left" dataKey="sinActividad" stackId={categoriaAcumulativa === 'todos' ? 'a' : undefined} fill="#9CA3AF" name="Sin Actividad Acumulados">
@@ -979,6 +1003,13 @@ export default function DashboardReal() {
                         dataKey="total" 
                         position="top" 
                         style={{ fontSize: '11px', fontWeight: 'bold', fill: '#374151' }}
+                      />
+                    )}
+                    {categoriaAcumulativa === 'sinActividad' && (
+                      <LabelList 
+                        dataKey="sinActividad" 
+                        position="top" 
+                        style={{ fontSize: '11px', fontWeight: 'bold', fill: '#6B7280' }}
                       />
                     )}
                   </Bar>
