@@ -533,48 +533,9 @@ export default function DashboardReal() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-3 md:p-6 lg:p-8">
       <div className="max-w-[1920px] mx-auto">
         <header className="mb-4 md:mb-6 lg:mb-8">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div>
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Métricas de Producto - Kladi
-              </h1>
-            </div>
-            
-            {/* Botón de Snapshot */}
-            <button
-              onClick={async () => {
-                if (confirm('¿Guardar snapshot de los datos actuales?\n\nEsto te mostrará instrucciones para configurar snapshots automáticos diarios.')) {
-                  try {
-                    const response = await fetch('/api/save-snapshot', { method: 'POST' });
-                    const result = await response.json();
-                    
-                    if (result.success) {
-                      alert(`✅ Snapshot preparado para ${result.data.fecha}\n\nTotal empresas: ${result.data.totalEmpresas}\n\n📋 Revisa la consola del navegador (F12) para ver las instrucciones de Google Apps Script.`);
-                      console.log('='.repeat(80));
-                      console.log('📸 SNAPSHOT GUARDADO');
-                      console.log('='.repeat(80));
-                      console.log('\n🔧 SCRIPT DE GOOGLE APPS SCRIPT:\n');
-                      console.log(result.googleAppsScript);
-                      console.log('\n' + '='.repeat(80));
-                      console.log('📝 INSTRUCCIONES:');
-                      result.data.instructions.forEach((inst: string) => console.log(inst));
-                      console.log('='.repeat(80));
-                    } else {
-                      alert(`❌ Error: ${result.error}\n\n${result.instructions ? result.instructions.join('\n') : ''}`);
-                    }
-                  } catch (error) {
-                    alert('Error al guardar snapshot. Verifica la consola.');
-                    console.error(error);
-                  }
-                }
-              }}
-              className="flex-shrink-0 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-lg text-sm font-semibold transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg"
-              title="Guardar snapshot diario de datos"
-            >
-              <span className="text-lg">📸</span>
-              <span className="hidden md:inline">Guardar Snapshot</span>
-            </button>
-          </div>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            Métricas de Producto - Kladi
+          </h1>
         </header>
 
         <div className="space-y-4 md:space-y-6">
