@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 
+// Forzar que la API sea dinámica y no se cachee en Vercel
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const SPREADSHEET_ID = '1zFdHighR8eKFeiCM_8RjGKNoCtuL2VxAdeIJ-283XWY';
 const API_KEY = 'AIzaSyCBTSvJ6FaP1olBYpWOwGaMdKokE3Ph1J4';
 const RANGE = "'2025'!A1:Y3000"; // Nombre de hoja en comillas simples
@@ -158,7 +162,9 @@ export async function GET() {
     
     console.log('Fetching from URL:', url);
     
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      cache: 'no-store', // No cachear la petición a Google Sheets
+    });
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -177,6 +183,13 @@ export async function GET() {
       success: true,
       data: cleanedData,
       range: data.range,
+      timestamp: new Date().toISOString(), // Agregar timestamp para verificar frescura
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
     });
   } catch (error) {
     console.error('Error fetching data from Google Sheets:', error);
@@ -190,6 +203,13 @@ export async function GET() {
       data: cleanedMockData,
       range: '2025!A1:Y',
       isMockData: true,
+      timestamp: new Date().toISOString(),
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+      },
     });
   }
 }
