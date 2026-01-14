@@ -24,6 +24,9 @@ export interface Company {
     empresa_inactiva_7d: boolean;
     precio_plan_mensual: number;
     mrr_estimado: number;
+    // Helper fields from backend
+    trial_vence_7d: boolean;
+    is_paying: boolean;
 }
 
 export interface KPIs {

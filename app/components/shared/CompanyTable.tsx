@@ -101,7 +101,8 @@ export default function CompanyTable<T extends Company>({ companies, columns, em
                                 <td className="px-2 py-4">
                                     <button
                                         onClick={() => toggleRow(company.empresa_id)}
-                                        className="text-gray-400 hover:text-gray-600"
+                                        disabled={!company.empresa_id}
+                                        className={`text-gray-400 hover:text-gray-600 ${!company.empresa_id ? 'opacity-20 cursor-not-allowed' : ''}`}
                                     >
                                         {expandedRows.has(company.empresa_id) ? '▼' : '▶'}
                                     </button>

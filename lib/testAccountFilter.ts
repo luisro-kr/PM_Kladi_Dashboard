@@ -5,64 +5,36 @@ import { Company } from '../types/dashboard';
  * @param company - The company to check
  * @param manualOverrides - Optional manual overrides from Google Sheets (empresa_id => is_test)
  */
+/**
+ * Generates a unique key for a company to handle duplicates with same ID but different admin
+ */
+export function getCompanyUniqueId(company: Company): string {
+    const id = company.empresa_id || 'unknown';
+    const admin = (company.nombre_administrador || 'unknown').trim().toLowerCase().replace(/\s+/g, '_');
+    return `${id}_${admin}`;
+}
+
 export function isTestAccount(company: Company, manualOverrides?: Record<string, boolean>): boolean {
     const empresaId = company.empresa_id;
+    const uniqueKey = getCompanyUniqueId(company);
 
-    // Check manual override first (highest priority)
-    if (manualOverrides && empresaId in manualOverrides) {
-        const isTest = manualOverrides[empresaId];
-        // Only log if it's an override that differs from auto-detection or is explicit
-        if (isTest) {
-            // console.log(`🔧 Manual override for ${company.nombre_empresa}: TEST`);
-        }
-        return isTest;
+    // 1. Check manual override first (highest priority)
+    if (manualOverrides) {
+        if (uniqueKey in manualOverrides) return manualOverrides[uniqueKey];
+        if (empresaId in manualOverrides) return manualOverrides[empresaId];
     }
 
-    const empresa = (company.nombre_empresa || '').toLowerCase();
-    const admin = (company.nombre_administrador || '').toLowerCase();
+    // 2. Strict Email Domain Rule
+    // Only mark as test if email ends with specific domains
     const email = (company.correo || '').toLowerCase();
-    const idStr = String(company.empresa_id || '');
-
-    // 1) Override: Ferretería Gallegos
-    if (empresa.includes('ferreteria gallegos') || empresa.includes('ferretería gallegos')) {
-        // Excluir si es Eduardo Test
-        if (admin.includes('eduardo test')) {
-            console.log(`🚫 Excluded (Ferretería Gallegos - Eduardo Test): ${company.nombre_empresa}`);
-            return true;
-        }
-        // Incluir si contiene "GALLEGOS" (cuenta real)
-        if (admin.includes('gallegos')) {
-            // console.log(`✅ Included (Ferretería Gallegos - Real): ${company.nombre_empresa}`);
-            return false;
-        }
-    }
-
-    // 2) Dominios internos/desechables
     const bannedDomains = ['@microsip.com', '@kladi.mx', '@mailinator.com'];
+
     if (bannedDomains.some(domain => email.endsWith(domain))) {
-        console.log(`🚫 Excluded (Banned domain): ${company.nombre_empresa} (${email})`);
+        // console.log(`🚫 Excluded (Test Domain): ${company.nombre_empresa} (${email})`);
         return true;
     }
 
-    // 3) Rangos de IDs de prueba (>= 100000000)
-    const idNum = Number(idStr);
-    if (!Number.isNaN(idNum) && idNum >= 100000000) {
-        console.log(`🚫 Excluded (Test ID range): ${company.nombre_empresa} (ID: ${idStr})`);
-        return true;
-    }
-
-    // 4) Keywords de prueba
-    const keywords = ['test', 'prueba', 'dev', 'prod', 'migracion', 'migración', 'qa', 'demo', 'sandbox'];
-    const hasKeyword = keywords.some(keyword =>
-        empresa.includes(keyword) || admin.includes(keyword)
-    );
-
-    if (hasKeyword) {
-        console.log(`🚫 Excluded (Test keyword): ${company.nombre_empresa}`);
-        return true;
-    }
-
-    // No es cuenta de prueba
+    // Otherwise, it's a REAL account
     return false;
 }
 
@@ -93,7 +65,8 @@ export function getTestAccounts(companies: Company[]): Company[] {
  * Loads manual test account overrides from Google Apps Script
  */
 export async function loadManualOverrides(): Promise<Record<string, boolean>> {
-    const WEBHOOK_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbySPrxTlDEQ0DgE23xSYNbn_Ac-9HfiUEV9p3o3rT6m2CT_BAb0AIqaG4V-eCnCbHLCTA/exec';
+    // Use local API proxy to avoid CORS
+    const WEBHOOK_URL = '/api/data';
 
     try {
         const response = await fetch(`${WEBHOOK_URL}?action=get_flags`);

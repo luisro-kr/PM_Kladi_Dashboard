@@ -1,6 +1,6 @@
 'use client';
 
-import { FilterState, PlanType, StatusType } from '../../types/dashboard';
+import { FilterState, PlanType, StatusType } from '../../../types/dashboard';
 
 interface FilterSidebarProps {
     filters: FilterState;
@@ -29,7 +29,7 @@ export default function FilterSidebar({ filters, onFilterChange, onResetFilters 
                 <select
                     value={filters.plan}
                     onChange={(e) => onFilterChange('plan', e.target.value as PlanType)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 >
                     <option value="all">Todos</option>
                     <option value="plata">Plata</option>
@@ -46,7 +46,7 @@ export default function FilterSidebar({ filters, onFilterChange, onResetFilters 
                 <select
                     value={filters.status}
                     onChange={(e) => onFilterChange('status', e.target.value as StatusType)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 >
                     <option value="all">Todos</option>
                     <option value="pagando">Pagando</option>
@@ -64,7 +64,7 @@ export default function FilterSidebar({ filters, onFilterChange, onResetFilters 
                     type="date"
                     value={filters.dateFrom || ''}
                     onChange={(e) => onFilterChange('dateFrom', e.target.value || null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 />
             </div>
 
@@ -77,7 +77,7 @@ export default function FilterSidebar({ filters, onFilterChange, onResetFilters 
                     type="date"
                     value={filters.dateTo || ''}
                     onChange={(e) => onFilterChange('dateTo', e.target.value || null)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 />
             </div>
 
@@ -91,7 +91,7 @@ export default function FilterSidebar({ filters, onFilterChange, onResetFilters 
                     value={filters.searchQuery}
                     onChange={(e) => onFilterChange('searchQuery', e.target.value)}
                     placeholder="Nombre, email, ID..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                 />
             </div>
         </div>

@@ -28,8 +28,8 @@ export function filterCompanies(companies: Company[], filters: FilterState, manu
 
         // Status filter
         if (filters.status !== 'all') {
-            const isPaid = looksPaid(company.estatus_suscripcion);
-            if (filters.status === 'pagando' && !isPaid) return false;
+            if (filters.status === 'pagando' && !company.is_paying) return false;
+            // Note: Dashboard Status filter typically means "Current Status", so 'trial' checks en_trial flag
             if (filters.status === 'trial' && !company.en_trial) return false;
             if (filters.status === 'expirado' && !company.trial_expirado) return false;
         }
@@ -71,17 +71,6 @@ export function filterCompanies(companies: Company[], filters: FilterState, manu
 // KPI Aggregation
 // ============================================
 
-function looksPaid(estatus: string): boolean {
-    if (!estatus) return false;
-    const s = estatus.trim().toLowerCase();
-    return ['activa', 'active', 'paid', 'pagado', 'pagando', 'suscrito'].includes(s);
-}
-
-function normalizePlan(plan: string): string {
-    if (!plan) return '';
-    return plan.trim().toLowerCase();
-}
-
 export function computeKPIs(companies: Company[]): KPIs {
     const total_empresas = companies.length;
 
@@ -89,39 +78,32 @@ export function computeKPIs(companies: Company[]): KPIs {
     let en_trial = 0;
     let trial_expirado = 0;
     let inactivas_7d = 0;
+    let trial_vence_7d = 0;
 
     const por_plan = { plata: 0, oro: 0, titanio: 0, otro: 0 };
     const por_estatus: Record<string, number> = {};
     let mrr_total = 0;
 
-    // Trial vence en 7 días
-    const now = new Date();
-    let trial_vence_7d = 0;
-
     for (const company of companies) {
-        const planKey = normalizePlan(company.plan_suscripcion);
-        if (planKey in por_plan) {
-            por_plan[planKey as keyof typeof por_plan] += 1;
-        } else {
-            por_plan.otro += 1;
-        }
+        // Plan is already normalized by backend (plata, oro, titanio, or otro/sin_plan)
+        const planKey = (company.plan_suscripcion || 'otro').toLowerCase();
+
+        if (planKey === 'plata') por_plan.plata++;
+        else if (planKey === 'oro') por_plan.oro++;
+        else if (planKey === 'titanio') por_plan.titanio++;
+        else por_plan.otro++;
 
         const est = company.estatus_suscripcion || 'sin_estatus';
         por_estatus[est] = (por_estatus[est] || 0) + 1;
 
-        if (looksPaid(company.estatus_suscripcion)) pagando += 1;
+        // Use backend flags directly
+        if (company.is_paying) pagando += 1;
         if (company.en_trial) en_trial += 1;
         if (company.trial_expirado) trial_expirado += 1;
         if (company.empresa_inactiva_7d) inactivas_7d += 1;
+        if (company.trial_vence_7d) trial_vence_7d += 1;
 
         mrr_total += company.mrr_estimado || 0;
-
-        // Trial vence en <=7 días
-        if (company.en_trial && company.fecha_fin_trial) {
-            const fin = new Date(company.fecha_fin_trial);
-            const daysToEnd = Math.floor((fin.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            if (daysToEnd >= 0 && daysToEnd <= 7) trial_vence_7d += 1;
-        }
     }
 
     return {
@@ -153,7 +135,7 @@ export function computeFunnel(companies: Company[]): FunnelData {
         return trialEndDate <= now;
     }).length;
 
-    const paid = companies.filter((c) => looksPaid(c.estatus_suscripcion)).length;
+    const paid = companies.filter((c) => c.is_paying).length;
 
     // Calculate stages with conversion rates
     const stages: FunnelStage[] = [
@@ -285,7 +267,7 @@ export function getRiskCompanies(companies: Company[]): RiskCompany[] {
             }
 
             // Paid but inactive
-            if (looksPaid(c.estatus_suscripcion) && c.empresa_inactiva_7d) {
+            if (c.is_paying && c.empresa_inactiva_7d) {
                 risk_factors.push('Cliente pagando pero inactivo');
                 risk_score += 50;
             }

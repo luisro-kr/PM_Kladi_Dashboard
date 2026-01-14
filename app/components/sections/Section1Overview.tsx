@@ -52,7 +52,7 @@ export default function Section1Overview({ kpis }: Section1OverviewProps) {
                 />
 
                 <KPICard
-                    label="Pagando"
+                    label="Pagando (Proxy)*"
                     value={kpis.pagando}
                     color="green"
                     icon={
@@ -74,7 +74,7 @@ export default function Section1Overview({ kpis }: Section1OverviewProps) {
                 />
 
                 <KPICard
-                    label="MRR Total"
+                    label="MRR Estimado*"
                     value={formatCurrency(kpis.mrr_total)}
                     color="purple"
                     icon={
@@ -113,7 +113,7 @@ export default function Section1Overview({ kpis }: Section1OverviewProps) {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Chart */}
                     <div className="h-64">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <PieChart>
                                 <Pie
                                     data={planData}
@@ -176,6 +176,10 @@ export default function Section1Overview({ kpis }: Section1OverviewProps) {
                     ))}
                 </div>
             </div>
+
+            <p className="text-xs text-gray-400 italic">
+                * Métricas marcadas como "Proxy" son estimaciones basadas en estatus activo y plan, pendientes de integración con fechas de pago reales.
+            </p>
         </div>
     );
 }

@@ -2,20 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { Company } from '../../types/dashboard';
-import { isTestAccount } from '../../lib/testAccountFilter';
+import { isTestAccount, getCompanyUniqueId } from '../../lib/testAccountFilter';
 import CompanyTable from './shared/CompanyTable';
 
 interface AdminPanelProps {
     allCompanies: Company[];
 }
 
-const WEBHOOK_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbySPrxTlDEQ0DgE23xSYNbn_Ac-9HfiUEV9p3o3rT6m2CT_BAb0AIqaG4V-eCnCbHLCTA/exec';
+// Use local API proxy to avoid CORS
+const WEBHOOK_URL = '/api/data';
 
 export default function AdminPanel({ allCompanies }: AdminPanelProps) {
     const [manualOverrides, setManualOverrides] = useState<Record<string, boolean>>({});
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [showDebug, setShowDebug] = useState(false);
 
     // Load manual overrides from Google Apps Script
     useEffect(() => {
@@ -48,8 +50,9 @@ export default function AdminPanel({ allCompanies }: AdminPanelProps) {
     }, []);
 
     // Save manual override to Google Apps Script
-    const saveOverride = async (empresaId: string, isTest: boolean) => {
+    const saveOverride = async (company: Company, isTest: boolean) => {
         setSaving(true);
+        const uniqueId = getCompanyUniqueId(company);
 
         try {
             const response = await fetch(WEBHOOK_URL, {
@@ -59,7 +62,7 @@ export default function AdminPanel({ allCompanies }: AdminPanelProps) {
                 },
                 body: JSON.stringify({
                     action: 'update_flag',
-                    empresaId,
+                    empresaId: uniqueId,
                     isTest,
                 }),
             });
@@ -67,9 +70,9 @@ export default function AdminPanel({ allCompanies }: AdminPanelProps) {
             const data = await response.json();
 
             if (data.ok) {
-                console.log(`✅ Saved test flag for ${empresaId}: ${isTest}`);
+                console.log(`✅ Saved test flag for ${uniqueId}: ${isTest}`);
                 // Also save to localStorage as backup
-                const newOverrides = { ...manualOverrides, [empresaId]: isTest };
+                const newOverrides = { ...manualOverrides, [uniqueId]: isTest };
                 localStorage.setItem('test_account_overrides', JSON.stringify(newOverrides));
             } else {
                 console.error('Failed to save test flag:', data.error);
@@ -78,33 +81,34 @@ export default function AdminPanel({ allCompanies }: AdminPanelProps) {
         } catch (error) {
             console.error('Error saving to Google Sheets:', error);
             // Fallback to localStorage only
-            const newOverrides = { ...manualOverrides, [empresaId]: isTest };
+            const newOverrides = { ...manualOverrides, [uniqueId]: isTest };
             localStorage.setItem('test_account_overrides', JSON.stringify(newOverrides));
         } finally {
             setSaving(false);
         }
     };
 
-    const toggleTestStatus = async (empresaId: string) => {
-        const currentStatus = isMarkedAsTest(allCompanies.find(c => c.empresa_id === empresaId)!);
+    const toggleTestStatus = async (company: Company) => {
+        const currentStatus = isMarkedAsTest(company);
         const newStatus = !currentStatus;
+        const uniqueId = getCompanyUniqueId(company);
 
         // Update local state immediately for responsive UI
-        const newOverrides = { ...manualOverrides, [empresaId]: newStatus };
+        const newOverrides = { ...manualOverrides, [uniqueId]: newStatus };
         setManualOverrides(newOverrides);
 
         // Save to backend
-        await saveOverride(empresaId, newStatus);
+        await saveOverride(company, newStatus);
     };
 
     // Determine if company is marked as test (auto-detected or manual override)
     const isMarkedAsTest = (company: Company): boolean => {
         const empresaId = company.empresa_id;
+        const uniqueId = getCompanyUniqueId(company);
 
-        // Check manual override first
-        if (empresaId in manualOverrides) {
-            return manualOverrides[empresaId];
-        }
+        // Check manual override (Composite key first, then legacy ID)
+        if (uniqueId in manualOverrides) return manualOverrides[uniqueId];
+        if (empresaId in manualOverrides) return manualOverrides[empresaId];
 
         // Fall back to automatic detection
         return isTestAccount(company);
@@ -160,13 +164,15 @@ export default function AdminPanel({ allCompanies }: AdminPanelProps) {
             label: 'Estado',
             render: (company: Company) => {
                 const isTest = isMarkedAsTest(company);
-                const isManual = company.empresa_id in manualOverrides;
+                const uniqueId = getCompanyUniqueId(company);
+                // Check if manually set (either via unique ID or legacy ID)
+                const isManual = (uniqueId in manualOverrides) || (company.empresa_id in manualOverrides);
                 const autoDetected = isTestAccount(company);
 
                 return (
                     <div className="flex items-center space-x-2">
                         <button
-                            onClick={() => toggleTestStatus(company.empresa_id)}
+                            onClick={() => toggleTestStatus(company)}
                             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${isTest
                                 ? 'bg-red-100 text-red-800 hover:bg-red-200'
                                 : 'bg-green-100 text-green-800 hover:bg-green-200'
@@ -193,7 +199,7 @@ export default function AdminPanel({ allCompanies }: AdminPanelProps) {
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-[90%] mx-auto">
                 {/* Header */}
                 <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
                     <div className="flex items-center justify-between mb-2">
@@ -233,8 +239,53 @@ export default function AdminPanel({ allCompanies }: AdminPanelProps) {
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Buscar por nombre, correo, ID o administrador..."
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 bg-white"
                     />
+                </div>
+
+                {/* Debug Tool */}
+                <div className="mb-6 space-y-2">
+                    <div className="flex space-x-4">
+                        <button
+                            onClick={() => setShowDebug(!showDebug)}
+                            className="text-xs text-gray-400 hover:text-gray-600 underline"
+                        >
+                            {showDebug ? 'Ocultar Raw Data' : 'Ver Raw Data (Debug)'}
+                        </button>
+
+                        <button
+                            onClick={async () => {
+                                alert("Iniciando diagnóstico... espera un momento.");
+                                try {
+                                    const res = await fetch(`${WEBHOOK_URL}?action=debug_sheet`);
+                                    const data = await res.json();
+                                    console.log("DIAGNOSTIC RESULT:", data);
+                                    const newWindow = window.open('', '_blank');
+                                    if (newWindow) {
+                                        newWindow.document.write('<html><body style="font-family:monospace; padding:20px;">');
+                                        newWindow.document.write('<h1>Reporte de Diagnóstico GAS V5</h1>');
+                                        newWindow.document.write('<h3>Problema Detectado: ' + (data.problem || 'Ninguno') + '</h3>');
+                                        newWindow.document.write('<h3>Hojas Detectadas: ' + (data.all_sheet_names || []).join(', ') + '</h3>');
+                                        newWindow.document.write('<h3>Headers Detectados (Fila 1):</h3><pre>' + JSON.stringify(data.headers_detected, null, 2) + '</pre>');
+                                        newWindow.document.write('<h3>Muestreo de Datos (Primeras 5 filas):</h3><pre>' + JSON.stringify(data.sample_data_raw, null, 2) + '</pre>');
+                                        newWindow.document.write('</body></html>');
+                                    }
+                                } catch (e: any) {
+                                    alert("Error ejecutando diagnóstico: " + e.message);
+                                }
+                            }}
+                            className="text-xs text-red-400 hover:text-red-600 underline font-bold"
+                        >
+                            ☢️ EJECUTAR DIAGNÓSTICO PROFUNDO
+                        </button>
+                    </div>
+
+                    {showDebug && (
+                        <div className="bg-gray-900 text-green-400 p-4 rounded text-xs font-mono overflow-auto max-h-96">
+                            <p className="mb-2 text-white font-bold">First 3 Rows Received from Server (Frontend View):</p>
+                            <pre>{JSON.stringify(allCompanies.slice(0, 3), null, 2)}</pre>
+                        </div>
+                    )}
                 </div>
 
                 {/* Info Box */}

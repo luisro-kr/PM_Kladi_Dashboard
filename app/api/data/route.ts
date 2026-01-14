@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 // URL of your new Webhook v2
-const WEBHOOK_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbySPrxTlDEQ0DgE23xSYNbn_Ac-9HfiUEV9p3o3rT6m2CT_BAb0AIqaG4V-eCnCbHLCTA/exec';
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_APPS_SCRIPT_WEBHOOK_URL || 'https://script.google.com/macros/s/AKfycbxI0wh5XEF48nJgax1wmwBvWG8HDt2BFvVUwi9davfE7EYx-K2Tkdqy3EmxIlac5rZLlg/exec';
 // NOTE: Make sure to update this URL if you deploy a new script version!
 
 export async function GET(request: Request) {
@@ -14,79 +14,148 @@ export async function GET(request: Request) {
     const action = searchParams.get('action') || 'get_data';
 
     // 1. Fetch data from Google Apps Script
+    console.log(`[API] Fetching from GAS: ${WEBHOOK_URL}?action=${action}`);
     const response = await fetch(`${WEBHOOK_URL}?action=${action}`, {
       cache: 'no-store',
     });
 
+    const responseText = await response.text();
+    console.log(`[API] GAS Response Status: ${response.status}`);
+
     if (!response.ok) {
+      console.error(`[API] GAS Error Response: ${responseText.slice(0, 500)}...`);
       throw new Error(`Google Apps Script responded with ${response.status}`);
     }
 
-    const result = await response.json();
+    let result;
+    try {
+      result = JSON.parse(responseText);
+    } catch (e) {
+      console.error(`[API] Failed to parse JSON. Raw response: ${responseText.slice(0, 500)}...`);
+      throw new Error(`Invalid JSON from Google Script: ${responseText.slice(0, 100)}`);
+    }
 
-    if (!result.success && !result.ok) { // Check both for compatibility
+    // 2. Pass-through for flags and debug
+    if (action === 'get_flags' || action === 'debug_sheet') {
+      return NextResponse.json(result);
+    }
+
+    if (!result.success && !result.ok) {
       throw new Error(result.error || 'Unknown error from Google Script');
     }
 
-    // 2. If asking for raw data, transform it for the frontend
+    // 3. For 'get_data', transform it for the frontend
     const rawCompanies = result.data || [];
 
     const companies = rawCompanies.map((raw: any) => {
-      // Data is already cleaned by GAS, just perform frontend calculations
+      // --- 0. NORMALIZATION & PARSING ---
+
+      // 0.3 Parsing Numbers (Safety)
+      const parseNum = (val: any) => {
+        const n = parseFloat(val);
+        return isNaN(n) ? 0 : n;
+      };
+
+      const nuevos_tickets_7d = parseNum(raw.nuevos_tickets_7d);
+      const nuevos_clientes_7d = parseNum(raw.nuevos_clientes_7d);
+      const nuevos_articulos_7d = parseNum(raw.nuevos_articulos_7d);
+      const total_tickets = parseNum(raw.total_tickets); // Fallback if needed
+      const total_clientes = parseNum(raw.total_clientes);
+      const total_articulos = parseNum(raw.total_articulos);
+
+      // 0.1 Normalize Plan
+      const rawPlan = (raw.plan_suscripcion || '').toString().toLowerCase();
+      let plan_key = 'otro';
+
+      if (rawPlan.includes('plata')) plan_key = 'plata';
+      else if (rawPlan.includes('oro')) plan_key = 'oro';
+      else if (rawPlan.includes('titanio')) plan_key = 'titanio';
+      else if (rawPlan.includes('legacy')) plan_key = 'legacy';
+      else if (rawPlan.includes('especial')) plan_key = 'especial';
+      else if (rawPlan.includes('sin plan') || rawPlan.trim() === '') plan_key = 'sin_plan';
+
+      // 0.2 Normalize Status
+      const rawStatus = (raw.estatus_suscripcion || '').toString().toLowerCase();
+      const is_active = rawStatus.includes('activa');
+      // "Pagando" proxy: Active AND not "sin_plan" (until we have payment dates)
+      const is_paying_proxy = is_active && plan_key !== 'sin_plan';
+
+      // 0.4 Parse Dates
       const now = new Date();
       const fecha_creacion = raw.fecha_creacion_empresa ? new Date(raw.fecha_creacion_empresa) : null;
 
-      // Calculate derived fields
-      let dias_desde_creacion = null;
+      // --- 1. BUSINESS LOGIC ---
+
+      let dias_desde_creacion = 0;
       let fecha_fin_trial = null;
       let en_trial = false;
       let trial_expirado = false;
+      let trial_vence_7d = false;
 
       if (fecha_creacion) {
-        dias_desde_creacion = Math.floor((now.getTime() - fecha_creacion.getTime()) / (1000 * 60 * 60 * 24));
+        // Calculate days since creation
+        const diffTime = Math.abs(now.getTime() - fecha_creacion.getTime());
+        dias_desde_creacion = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        // Trial Logic (15 days fixed rule)
         fecha_fin_trial = new Date(fecha_creacion);
         fecha_fin_trial.setDate(fecha_fin_trial.getDate() + 15);
 
-        const estatus = (raw.estatus_suscripcion || '').toString().toLowerCase();
-        const isPaid = ['activa', 'active', 'paid', 'pagado', 'pagando', 'suscrito'].includes(estatus);
+        // Logic: In trial if within 15 days AND not yet paying
+        // We use !is_paying_proxy to ensure we don't mark paid accounts as "in trial"
+        en_trial = (now <= fecha_fin_trial) && !is_paying_proxy;
 
-        en_trial = (now <= fecha_fin_trial) && !isPaid;
-        trial_expirado = (now > fecha_fin_trial) && !isPaid;
+        trial_expirado = (now > fecha_fin_trial) && !is_paying_proxy;
+
+        // Trial expires within next 7 days: is in trial AND (0 <= time_left <= 7 days)
+        const daysLeft = Math.ceil((fecha_fin_trial.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+        trial_vence_7d = en_trial && (daysLeft >= 0 && daysLeft <= 7);
       }
 
-      // Pricing logic
-      const plan = (raw.plan_suscripcion || '').toString().toLowerCase();
-      const precio_plan_mensual =
-        plan.includes('plata') ? 90 :
-          plan.includes('oro') ? 220 :
-            plan.includes('titanio') ? 440 : 0;
+      // Pricing Logic
+      let precio_plan_mensual = 0;
+      switch (plan_key) {
+        case 'plata': precio_plan_mensual = 90; break;
+        case 'oro': precio_plan_mensual = 220; break;
+        case 'titanio': precio_plan_mensual = 440; break;
+        // legacy/especial = 0 or custom logic
+      }
+      const mrr_estimado = is_paying_proxy ? precio_plan_mensual : 0;
 
-      const isPaid = ['activa', 'active', 'paid', 'pagado', 'pagando', 'suscrito']
-        .includes((raw.estatus_suscripcion || '').toString().toLowerCase());
+      // Activity Logic (Funnel Section)
+      // Activated: >= 5 articles AND >= 3 tickets in last 7d
+      const activado_en_7d = (nuevos_articulos_7d >= 5) && (nuevos_tickets_7d >= 3);
 
-      const mrr_estimado = isPaid ? precio_plan_mensual : 0;
-
-      // Activity Logic
-      const activado_en_7d = (raw.nuevos_articulos_7d >= 5) && (raw.nuevos_tickets_7d >= 3);
-      const empresa_inactiva_7d = (raw.nuevos_tickets_7d === 0);
+      // Inactive Risk: 0 tickets in last 7d (But must be an ACTIVE account to care)
+      const empresa_inactiva_7d = (nuevos_tickets_7d === 0) && is_active;
 
       return {
-        ...raw, // ID, Nombre, Correo, etc came from GAS
+        ...raw, // Keep original fields 
+        // Normalized overrides
+        plan_suscripcion: plan_key, // Send the normalized key to frontend
+        estatus_suscripcion: is_active ? 'Activa' : 'Inactiva',
 
-        // Frontend Derived Fields
-        total_tickets: raw.nuevos_tickets_7d, // Assuming total ~= 7d for now if total not provided, or map correctly if GAS provides
-        total_clientes: raw.nuevos_clientes_7d,
-        total_articulos: raw.nuevos_articulos_7d,
+        // Numeric fields ensured
+        nuevos_tickets_7d,
+        nuevos_clientes_7d,
+        nuevos_articulos_7d,
+        total_tickets,
+        total_clientes,
+        total_articulos,
 
+        // Derived fields
         last_update: new Date().toISOString(),
         dias_desde_creacion,
         fecha_fin_trial: fecha_fin_trial ? fecha_fin_trial.toISOString() : null,
         en_trial,
         trial_expirado,
+        trial_vence_7d,
         activado_en_7d,
         empresa_inactiva_7d,
         precio_plan_mensual,
         mrr_estimado,
+        // Helper specifically for frontend "Pagando" badge
+        is_paying: is_paying_proxy
       };
     });
 

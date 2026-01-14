@@ -49,7 +49,7 @@ export default function Section5Risk({ riskCompanies }: Section5RiskProps) {
             ),
         },
         {
-            key: 'custom' as const,
+            key: 'risk_factors' as any, // Cast to any to bypass strict keyof T constraint if needed, or update the type definition
             label: 'Factores de Riesgo',
             render: (company: RiskCompany) => (
                 <div className="text-xs space-y-1">
